@@ -41,32 +41,62 @@ And instrument
 DatadogStats.Default.Increment("metricA");
 DatadogStats.Default.Decrement("metricA", 3);
 
-
+// Metrics is follows to http://docs.datadoghq.com/guides/dogstatsd/
 DatadogStats.Default.Gauge();
-
 DatadogStats.Default.Histogram();
-
 DatadogStats.Default.Set();
-
 DatadogStats.Default.Timer();
 
-DatadogStats.Default.BeginTimer();
+// sampleRate and tags are optional
+DatadogStats.Default.Histogram("merticB", sampleRate:0.5);
+DatadogStats.Default.Histogram("merticB", tags:new[] { "mygroup:foo", "foobar" });
 
+// BeginTimer is scoped verison of Timer, you can measure executing time easily
+using(DatadogStats.Default.BeginTimer())
+{
+}
 
-DatadogStats.Default.Event();
-
-
+// You can Event and ServiceCheck. message is automaticaly truncated max 4096.
+DatadogStats.Default.Event("MyApp.Exception", "Stacktrace and messdages",  alertType:AlertType.Error);
 DatadogStats.Default.ServiceCheck();
-
 ```
 
+If you want to use another configuration(meric prefix, default tags), you can create DatadogStats instance and use it.
 
+```csharp
+var anotherStats = new DatadogStats("127.0.0.1", 9999);
+```
 
+# Caching storategy
 
+If every time sends same message, you can cache byte[] and use it.
 
+```csharp
+// If always same.
+DatadogStats.Default.Increment("myIncr", tags: new[] { "mytag" });
 
+// Create command manualy and cache it
+var stringCommand = DogStatsDFormatter.Counter(DatadogStats.Default.WithPrefix("myIncr"), 1, 1.0, DatadogStats.Default.WithDefaultTag(new[] { "mytag" }));
+var cachedBytes = Encoding.UTF8.GetBytes(stringCommand);
 
+// you can send cachedBytes everytime...
+DatadogStats.Default.Send(cachedBytes);
+DatadogStats.Default.Send(cachedBytes);
+DatadogStats.Default.Send(cachedBytes);
+```
 
-http://docs.datadoghq.com/guides/dogstatsd/#datagram-format
+Author Info
+---
+Yoshifumi Kawai(a.k.a. neuecc) is a software developer in Japan.  
+He is the Director/CTO at Grani, Inc.  
+Grani is a mobile game developer company in Japan and well known for using C#.  
+He is awarding Microsoft MVP for Visual C# since 2011.  
+He is known as the creator of [UniRx](http://github.com/neuecc/UniRx/)(Reactive Extensions for Unity)  
 
-TODO:
+Blog: [https://medium.com/@neuecc](https://medium.com/@neuecc) (English)  
+Blog: [http://neue.cc/](http://neue.cc/) (Japanese)  
+Twitter: [https://twitter.com/neuecc](https://twitter.com/neuecc) (Japanese)   
+
+License
+---
+This library is under the MIT License.

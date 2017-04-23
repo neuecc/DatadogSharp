@@ -99,13 +99,7 @@ namespace Benchmark
         {
             //BenchmarkRunner.Run<EventCheck>();
 
-            DatadogStats.Default.Increment("metricA");
 
-
-
-            global::DatadogSharp.DogStatsd.DatadogStats.ConfigureDefault("127.0.0.1", 8125, "myApp", new[] { "tako:nanonano" });
-
-            global::DatadogSharp.DogStatsd.DatadogStats.Default.Event("testev", "aiueokakikukekonanonano", tags:new[] { "hoge", "huga" });
         }
     }
 }
