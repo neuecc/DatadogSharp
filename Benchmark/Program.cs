@@ -98,7 +98,9 @@ namespace Benchmark
         static void Main(string[] args)
         {
             //BenchmarkRunner.Run<EventCheck>();
+            global::DatadogSharp.DogStatsd.DatadogStats.ConfigureDefault("127.0.0.1", 8125, "myApp");
 
+            DatadogStats.Default.Increment("hogehoge", 100);
 
         }
     }

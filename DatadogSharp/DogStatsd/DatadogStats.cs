@@ -37,6 +37,7 @@ namespace DatadogSharp.DogStatsd
 
             this.udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             this.endPoint = new IPEndPoint(IPAddress.Parse(address), port);
+            this.isNull = false;
         }
 
         public string WithPrefix(string name)
