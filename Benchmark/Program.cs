@@ -99,9 +99,15 @@ namespace Benchmark
         {
             //BenchmarkRunner.Run<EventCheck>();
             global::DatadogSharp.DogStatsd.DatadogStats.ConfigureDefault("127.0.0.1", 8125, "myApp");
+            try
+            {
+                throw new Exception("wahhoi");
+            }
+            catch (Exception ex)
+            {
+                DatadogStats.Default.Event("hugahuga", ex.ToString(), alertType: AlertType.Error);
 
-            DatadogStats.Default.Increment("hogehoge", 100);
-
+            }
         }
     }
 }

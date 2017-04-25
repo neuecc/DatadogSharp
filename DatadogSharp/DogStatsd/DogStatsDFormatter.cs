@@ -137,6 +137,7 @@ namespace DatadogSharp.DogStatsd
 
             sb.Append(title);
             sb.Append("|");
+
             if (truncateText && text.Length > 4096)
             {
                 sb.Append(text, 0, 4096); // optimize truncate.
@@ -145,6 +146,9 @@ namespace DatadogSharp.DogStatsd
             {
                 sb.Append(text);
             }
+
+            // escape both title and text.
+            sb.Replace("\r", "").Replace("\n", "\\n");
 
             // Optional
             if (dateHappened != null)
@@ -206,6 +210,8 @@ namespace DatadogSharp.DogStatsd
             sb.Append(name);
             sb.Append("|");
             sb.Append(status);
+
+            sb.Replace("\r", "").Replace("\n", "\\n");
 
             // Optional
             if (timestamp != null)
