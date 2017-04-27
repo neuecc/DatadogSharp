@@ -5,7 +5,7 @@ Yet another C# Datadog client that supports DogStatsD and APM.
 
 A [Datadog](https://www.datadoghq.com/) client for C# which transport metrics to datadog agent. Datadog has [official C# client](https://github.com/DataDog/dogstatsd-csharp-client) but it is not performant. DatadogSharp is more performant and has zero-overhead api.
 
-Additionaly supports [Datadog APM](https://www.datadoghq.com/apm/) API for [Datadog trace agent](https://github.com/DataDog/datadog-trace-agent). This is only C# SDK which supports APM.
+Additionaly supports [Datadog APM](https://www.datadoghq.com/apm/) API for [Datadog trace agent](https://github.com/DataDog/datadog-trace-agent) with my fastest [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) implements. This is only C# SDK which supports APM.
 
 > not yet implemented, please wait a moment.
 
