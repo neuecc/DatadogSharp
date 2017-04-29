@@ -78,12 +78,12 @@ namespace DatadogSharp.DogStatsd
 
         public void Increment(string metricName, long value = 1, double sampleRate = 1.0, string[] tags = null)
         {
-            Counter(WithPrefix(metricName), value, sampleRate, tags);
+            Counter(metricName, value, sampleRate, tags);
         }
 
         public void Decrement(string metricName, long value = 1, double sampleRate = 1.0, string[] tags = null)
         {
-            Counter(WithPrefix(metricName), -value, sampleRate, tags);
+            Counter(metricName, -value, sampleRate, tags);
         }
 
         public void Counter(string metricName, long value, double sampleRate = 1.0, string[] tags = null)
