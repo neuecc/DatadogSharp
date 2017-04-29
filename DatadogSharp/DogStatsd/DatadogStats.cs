@@ -176,9 +176,24 @@ namespace DatadogSharp.DogStatsd
             }
         }
 
-        public MeasureScope BeginTimer(string metricName, double sampleRate = 1.0, string[] tags = null)
+        public MeasureElapsedScope BeginTimer(string metricName, double sampleRate = 1.0, string[] tags = null)
         {
-            return MeasureScope.StartNew(this, WithPrefix(metricName), sampleRate, tags);
+            return MeasureElapsedScope.StartNew(this, MeasureType.Timer, metricName, sampleRate, tags);
+        }
+
+        public MeasureElapsedScope BeginGauge(string metricName, double sampleRate = 1.0, string[] tags = null)
+        {
+            return MeasureElapsedScope.StartNew(this, MeasureType.Gauge, metricName, sampleRate, tags);
+        }
+
+        public MeasureElapsedScope BeginHistogram(string metricName, double sampleRate = 1.0, string[] tags = null)
+        {
+            return MeasureElapsedScope.StartNew(this, MeasureType.Histogram, metricName, sampleRate, tags);
+        }
+
+        public CounterScope BeginCounter(string metricName, long value = 1, string[] tags = null)
+        {
+            return CounterScope.StartNew(this, metricName, value, tags);
         }
 
         public void Event(string title, string text, int? dateHappened = null, string hostName = null, string aggregationKey = null, Priority priority = Priority.Normal, string sourceTypeName = null, AlertType alertType = AlertType.Info, string[] tags = null, bool truncateText = true)
@@ -197,7 +212,6 @@ namespace DatadogSharp.DogStatsd
             Send(command);
         }
 
-
         public void Dispose()
         {
             if (isNull) return;
@@ -206,17 +220,18 @@ namespace DatadogSharp.DogStatsd
         }
     }
 
-    public struct MeasureScope : IDisposable
+    public struct MeasureElapsedScope : IDisposable
     {
         System.Diagnostics.Stopwatch sw;
         DatadogStats ds;
+        MeasureType type;
         string metricName;
         double sampleRate;
         string[] tags;
 
-        public static MeasureScope StartNew(DatadogStats dogstats, string metricName, double sampleRate, string[] tags)
+        public static MeasureElapsedScope StartNew(DatadogStats dogstats, MeasureType type, string metricName, double sampleRate, string[] tags)
         {
-            return new MeasureScope { sw = ThreadSafeUtil.RentStopwatchStartNew(), ds = dogstats, metricName = metricName, tags = tags, sampleRate = sampleRate };
+            return new MeasureElapsedScope { sw = ThreadSafeUtil.RentStopwatchStartNew(), ds = dogstats, type = type, metricName = metricName, tags = tags, sampleRate = sampleRate };
         }
 
         public void Dispose()
@@ -224,9 +239,53 @@ namespace DatadogSharp.DogStatsd
             if (sw != null)
             {
                 sw.Stop();
-                ds.Timer(metricName, sw.Elapsed.TotalMilliseconds, sampleRate, tags);
+
+                switch (type)
+                {
+                    case MeasureType.Timer:
+                        ds.Timer(metricName, sw.Elapsed.TotalMilliseconds, sampleRate, tags);
+                        break;
+                    case MeasureType.Gauge:
+                        ds.Gauge(metricName, sw.Elapsed.TotalMilliseconds, sampleRate, tags);
+                        break;
+                    case MeasureType.Histogram:
+                        ds.Histogram(metricName, sw.Elapsed.TotalMilliseconds, sampleRate, tags);
+                        break;
+                    default:
+                        break;
+                }
+
                 ThreadSafeUtil.ReturnStopwatch(sw);
                 sw = null;
+                ds = null;
+            }
+        }
+    }
+
+    public enum MeasureType
+    {
+        Timer, Gauge, Histogram
+    }
+
+    public struct CounterScope : IDisposable
+    {
+        DatadogStats ds;
+        string metricName;
+        long value;
+        string[] tags;
+
+        public static CounterScope StartNew(DatadogStats dogstats, string metricName, long value, string[] tags)
+        {
+            dogstats.Counter(metricName, value, tags: tags);
+            return new CounterScope { ds = dogstats, metricName = metricName, tags = tags };
+        }
+
+        public void Dispose()
+        {
+            if (ds != null)
+            {
+                ds.Counter(metricName, -value, tags: tags);
+                ds = null;
             }
         }
     }
