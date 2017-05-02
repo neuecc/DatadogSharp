@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DatadogSharp", "DatadogShar
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benchmark.csproj", "{65ECD691-5882-4E52-B242-9C0D6FFF8AAC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxNetCore", "SandboxNetCore\SandboxNetCore.csproj", "{42BCF1DF-E3F7-4B5E-9DCD-5E3959A28058}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{65ECD691-5882-4E52-B242-9C0D6FFF8AAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65ECD691-5882-4E52-B242-9C0D6FFF8AAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65ECD691-5882-4E52-B242-9C0D6FFF8AAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42BCF1DF-E3F7-4B5E-9DCD-5E3959A28058}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42BCF1DF-E3F7-4B5E-9DCD-5E3959A28058}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42BCF1DF-E3F7-4B5E-9DCD-5E3959A28058}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42BCF1DF-E3F7-4B5E-9DCD-5E3959A28058}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

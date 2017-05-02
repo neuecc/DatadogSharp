@@ -4,6 +4,7 @@ using BenchmarkDotNet.Diagnostics.Windows;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 using DatadogSharp.DogStatsd;
+using DatadogSharp.Tracing;
 using StatsdClient;
 using System;
 using System.Collections.Generic;
@@ -97,13 +98,7 @@ namespace Benchmark
     {
         static void Main(string[] args)
         {
-            //BenchmarkRunner.Run<EventCheck>();
-            global::DatadogSharp.DogStatsd.DatadogStats.ConfigureDefault("127.0.0.1", 8125, "myApp");
-
-            using (DatadogStats.Default.BeginGauge("hoge"))
-            {
-
-            }
+          
 
         }
     }

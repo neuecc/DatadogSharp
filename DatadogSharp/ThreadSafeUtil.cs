@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace DatadogSharp.DogStatsd
+namespace DatadogSharp
 {
     internal static class ThreadSafeUtil
     {
