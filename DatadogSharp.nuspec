@@ -2,14 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>DatadogSharp</id>
-        <version>1.1.0</version>
+        <version>1.2.0</version>
         <title>DatadogSharp</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
         <projectUrl>https://github.com/neuecc/MessagePack-CSharp/</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Yet another C# Datadog client that supports DogStatsD and APM.</description>
-        <releaseNotes>Fix SendEvent.</releaseNotes>
+        <releaseNotes>Fix send duplicate prefix in Incr/Decr. Add BeginGauge/Histogram/Counter</releaseNotes>
         <tags>Datadog, StatsD</tags>
         <dependencies>
             <group targetFramework=".NETStandard1.4">
