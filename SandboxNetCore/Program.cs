@@ -41,7 +41,24 @@ namespace SandboxNetCore
 
             var tid = Span.BuildRandomId();
             Console.WriteLine(tid);
-            for (int i = 0; i < 4; i++)
+
+
+            var root = new DatadogSharp.Tracing.Span
+            {
+                TraceId = tid,
+                SpanId = Span.BuildRandomId(),
+                Name = "my_root",
+                Resource = "/home",
+                Service = "testservice",
+                Start = Span.ToNanoseconds(DateTime.UtcNow),
+                Type = "web",
+                Duration = Span.ToNanoseconds(TimeSpan.FromMilliseconds(3500)),
+                //Error = 1,
+                //Meta = new Dictionary<string, string> { { "Message", new Exception().ToString() } }
+            };
+            traces.Add(root);
+
+            for (int i = 0; i < 4000; i++)
             {
                 var test = new DatadogSharp.Tracing.Span
                 {
@@ -53,6 +70,7 @@ namespace SandboxNetCore
                     Start = Span.ToNanoseconds(DateTime.UtcNow.AddMilliseconds(rand.Next(0, 3000))),
                     Type = "web",
                     Duration = Span.ToNanoseconds(TimeSpan.FromMilliseconds(rand.Next(100, 300))),
+                    ParentId = root.SpanId
                 };
 
                 traces.Add(test);
@@ -60,6 +78,9 @@ namespace SandboxNetCore
             var bytes = MessagePackSerializer.Serialize(traces, DatadogSharpResolver.Instance);
 
             Console.WriteLine(MessagePackSerializer.ToJson(bytes));
+
+
+
 
 
             var v = client.Traces(new[] { traces.ToArray() }).Result;

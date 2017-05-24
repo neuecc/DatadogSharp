@@ -25,6 +25,16 @@ namespace DatadogSharp.Tracing
 
     public class TracingScope : IDisposable
     {
+        public TracingScope()
+        {
+
+
+        }
+
+
+
+
+
         public void Dispose()
         {
             // TracingManager.Default.worker.Enqueue(
