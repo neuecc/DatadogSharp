@@ -28,63 +28,22 @@ namespace SandboxNetCore
 
         static void Main(string[] args)
         {
-            var client = new DatadogSharp.Tracing.DatadogClient();
-            var rand = new Random();
-            var traces = new List<Span>();
-
-            //client.Services(new Service
-            //{
-            //    App = "myapp",
-            //    AppType = "web",
-            //    ServiceName = "high.throughput"
-            //}).Wait();
-
-            var tid = Span.BuildRandomId();
-            Console.WriteLine(tid);
-
-
-            var root = new DatadogSharp.Tracing.Span
+            using (var scope = TracingManager.Default.BeginTracing("my_test_trace_root", "/home/index", "Service2", "Web"))
             {
-                TraceId = tid,
-                SpanId = Span.BuildRandomId(),
-                Name = "my_root",
-                Resource = "/home",
-                Service = "testservice",
-                Start = Span.ToNanoseconds(DateTime.UtcNow),
-                Type = "web",
-                Duration = Span.ToNanoseconds(TimeSpan.FromMilliseconds(3500)),
-                //Error = 1,
-                //Meta = new Dictionary<string, string> { { "Message", new Exception().ToString() } }
-            };
-            traces.Add(root);
-
-            for (int i = 0; i < 4000; i++)
-            {
-                var test = new DatadogSharp.Tracing.Span
+                using (var parent = scope.BeginSpan("my_span", "Redis"))
                 {
-                    TraceId = tid,
-                    SpanId = Span.BuildRandomId(),
-                    Name = "my_test_span" + i,
-                    Resource = "/home",
-                    Service = "testservice",
-                    Start = Span.ToNanoseconds(DateTime.UtcNow.AddMilliseconds(rand.Next(0, 3000))),
-                    Type = "web",
-                    Duration = Span.ToNanoseconds(TimeSpan.FromMilliseconds(rand.Next(100, 300))),
-                    ParentId = root.SpanId
-                };
+                    using (parent.BeginSpan("my_span2", "/huga/tako", "BattleEngine", "Redis"))
+                    {
+                        Thread.Sleep(TimeSpan.FromSeconds(1));
+                    }
+                    Thread.Sleep(TimeSpan.FromSeconds(2));
+                }
 
-                traces.Add(test);
+                Thread.Sleep(TimeSpan.FromSeconds(4.5));
             }
-            var bytes = MessagePackSerializer.Serialize(traces, DatadogSharpResolver.Instance);
 
-            Console.WriteLine(MessagePackSerializer.ToJson(bytes));
-
-
-
-
-
-            var v = client.Traces(new[] { traces.ToArray() }).Result;
-            Console.WriteLine(v);
+            Thread.Sleep(TimeSpan.FromSeconds(10));
+            // TracingManager.Default.Complete();
         }
     }
 }

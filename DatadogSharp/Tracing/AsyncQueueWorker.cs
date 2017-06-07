@@ -52,7 +52,13 @@ namespace DatadogSharp.Tracing
 
                     if (addCount == 0)
                     {
-                        await Task.Delay(bufferingTime).ConfigureAwait(false);
+                        try
+                        {
+                            await Task.Delay(bufferingTime, cancellationTokenSource.Token).ConfigureAwait(false);
+                        }
+                        catch (TaskCanceledException)
+                        {
+                        }
                     }
                     else
                     {

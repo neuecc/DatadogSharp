@@ -7,7 +7,7 @@ A [Datadog](https://www.datadoghq.com/) client for C# which transport metrics to
 
 Additionaly supports [Datadog APM](https://www.datadoghq.com/apm/) API for [Datadog trace agent](https://github.com/DataDog/datadog-trace-agent) with my fastest [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) implements. This is only C# SDK which supports APM.
 
-> not yet implemented, please wait a moment.
+> 1.3.0 supports APM but not yet documented.
 
 # Installation
 
