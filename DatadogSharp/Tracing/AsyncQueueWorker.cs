@@ -9,10 +9,10 @@ namespace DatadogSharp.Tracing
     {
         readonly ConcurrentQueue<Span[]> q = new ConcurrentQueue<Span[]>();
         readonly DatadogClient client;
-        readonly Action<Exception> logException;
+        Action<Exception> logException;
 
-        readonly TimeSpan bufferingTime;
-        readonly int bufferingCount;
+        TimeSpan bufferingTime;
+        int bufferingCount;
 
         readonly Task processingTask;
         int isDisposed = 0;
@@ -27,6 +27,17 @@ namespace DatadogSharp.Tracing
             this.bufferingTime = TimeSpan.FromMilliseconds(bufferingTimeMilliseconds);
         }
 
+        public void SetBufferingParameter(int bufferingCount, int bufferingTimeMilliseconds)
+        {
+            this.bufferingCount = bufferingCount;
+            this.bufferingTime = TimeSpan.FromMilliseconds(bufferingTimeMilliseconds);
+        }
+
+        public void SetExceptionLogger(Action<Exception> logger)
+        {
+            this.logException = logger;
+        }
+
         async Task ConsumeQueue()
         {
             var buffer = new StructBuffer<Span[]>(bufferingCount);
@@ -34,9 +45,11 @@ namespace DatadogSharp.Tracing
             {
                 try
                 {
+                    var loopCount = bufferingCount;
+
                     buffer.Clear();
                     var addCount = 0;
-                    for (int i = 0; i < bufferingCount; i++)
+                    for (int i = 0; i < loopCount; i++)
                     {
                         Span[] nextTrace;
                         if (q.TryDequeue(out nextTrace))
@@ -74,6 +87,10 @@ namespace DatadogSharp.Tracing
                 {
                     break;
                 }
+                catch (Exception ex)
+                {
+                    logException(ex);
+                }
             }
         }
 
@@ -82,17 +99,17 @@ namespace DatadogSharp.Tracing
             q.Enqueue(value);
         }
 
-        public void Complete()
+        public void Complete(TimeSpan waitTimeout)
         {
             if (Interlocked.Increment(ref isDisposed) == 1)
             {
                 cancellationTokenSource.Cancel();
-                processingTask.Wait();
+                processingTask.Wait(waitTimeout);
                 try
                 {
                     // rest line...
                     var lastLine = q.ToArray();
-                    client.Traces(lastLine).Wait();
+                    client.Traces(lastLine).Wait(waitTimeout);
                 }
                 catch (Exception ex)
                 {

@@ -9,6 +9,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Benchmark", "Benchmark\Benc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SandboxNetCore", "SandboxNetCore\SandboxNetCore.csproj", "{42BCF1DF-E3F7-4B5E-9DCD-5E3959A28058}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "NuGet", "NuGet", "{705A38E8-2171-4628-962D-AF04FE2B24C8}"
+	ProjectSection(SolutionItems) = preProject
+		DatadogSharp.nuspec = DatadogSharp.nuspec
+		pack.bat = pack.bat
+		push.bat = push.bat
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

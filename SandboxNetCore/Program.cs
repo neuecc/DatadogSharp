@@ -28,21 +28,21 @@ namespace SandboxNetCore
 
         static void Main(string[] args)
         {
-            using (var scope = TracingManager.Default.BeginTracing("my_test_trace_root", "/home/index", "Service2", "Web"))
-            {
-                using (var parent = scope.BeginSpan("my_span", "Redis"))
-                {
-                    using (parent.BeginSpan("my_span2", "/huga/tako", "BattleEngine", "Redis"))
-                    {
-                        Thread.Sleep(TimeSpan.FromSeconds(1));
-                    }
-                    Thread.Sleep(TimeSpan.FromSeconds(2));
-                }
+            //using (var scope = TracingManager.Default.BeginTracing("my_test_trace_root", "/home/index", "Service2", "Web"))
+            //{
+            //    using (var parent = scope.BeginSpan("my_span", "Redis"))
+            //    {
+            //        using (parent.BeginSpan("my_span2", "/huga/tako", "BattleEngine", "Redis"))
+            //        {
+            //            Thread.Sleep(TimeSpan.FromSeconds(1));
+            //        }
+            //        Thread.Sleep(TimeSpan.FromSeconds(2));
+            //    }
 
-                Thread.Sleep(TimeSpan.FromSeconds(4.5));
-            }
+            //    Thread.Sleep(TimeSpan.FromSeconds(4.5));
+            //}
 
-            Thread.Sleep(TimeSpan.FromSeconds(10));
+            //Thread.Sleep(TimeSpan.FromSeconds(10));
             // TracingManager.Default.Complete();
         }
     }

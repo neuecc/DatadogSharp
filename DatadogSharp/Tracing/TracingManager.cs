@@ -29,23 +29,33 @@ namespace DatadogSharp.Tracing
             worker.Enqueue(tracing);
         }
 
+        public void SetBufferingParameter(int bufferingCount, int bufferingTimeMilliseconds)
+        {
+            worker.SetBufferingParameter(bufferingCount, bufferingTimeMilliseconds);
+        }
+
+        public void SetExceptionLogger(Action<Exception> logger)
+        {
+            worker.SetExceptionLogger(logger);
+        }
+
         /// <summary>
         /// Finish worker, flush all traces and wait complete.
         /// </summary>
-        public void Complete()
+        public void Complete(TimeSpan waitTimeout)
         {
-            worker.Complete();
+            worker.Complete(waitTimeout);
         }
     }
 
     public class TracingScope : IDisposable
     {
         public ulong TraceId { get; private set; }
+        public string Name { get; private set; }
+        public string Resource { get; private set; }
+        public string Service { get; private set; }
+        public string Type { get; private set; }
 
-        readonly string name;
-        readonly string resource;
-        readonly string service;
-        readonly string type;
         readonly ulong spanId;
         readonly ulong start;
         Stopwatch duration;
@@ -58,10 +68,10 @@ namespace DatadogSharp.Tracing
 
         public TracingScope(string name, string resource, string service, string type, TracingManager manager)
         {
-            this.name = name;
-            this.resource = resource;
-            this.service = service;
-            this.type = type;
+            this.Name = name;
+            this.Resource = resource;
+            this.Service = service;
+            this.Type = type;
             this.TraceId = Span.BuildRandomId();
             this.spanId = Span.BuildRandomId();
             this.start = Span.ToNanoseconds(DateTime.UtcNow);
@@ -75,14 +85,27 @@ namespace DatadogSharp.Tracing
             this.spans.Add(ref span);
         }
 
-        public SpanScope BeginSpan(string name, string type)
-        {
-            return new SpanScope(name, this.resource, this.service, type, spanId, this);
-        }
-
         public SpanScope BeginSpan(string name, string resource, string service, string type)
         {
             return new SpanScope(name, resource, service, type, spanId, this);
+        }
+
+        public TracingScope WithError()
+        {
+            error = 1;
+            return this;
+        }
+
+        public TracingScope WithMeta(Dictionary<string, string> meta)
+        {
+            this.meta = meta;
+            return this;
+        }
+
+        public TracingScope WithMetrics(Dictionary<string, double> metrics)
+        {
+            this.metrics = metrics;
+            return this;
         }
 
         public void Dispose()
@@ -94,10 +117,10 @@ namespace DatadogSharp.Tracing
             {
                 TraceId = TraceId,
                 SpanId = spanId,
-                Name = name,
-                Resource = resource,
-                Service = service,
-                Type = type,
+                Name = Name,
+                Resource = Resource,
+                Service = Service,
+                Type = Type,
                 Start = start,
                 Duration = Span.ToNanoseconds(duration.Elapsed),
                 ParentId = null,
@@ -142,11 +165,6 @@ namespace DatadogSharp.Tracing
             this.duration = ThreadSafeUtil.RentStopwatchStartNew();
             this.spanId = Span.BuildRandomId();
             this.rootScope = rootScope;
-        }
-
-        public SpanScope BeginSpan(string name, string type)
-        {
-            return new SpanScope(name, this.resource, this.service, type, spanId, rootScope);
         }
 
         public SpanScope BeginSpan(string name, string resource, string service, string type)
