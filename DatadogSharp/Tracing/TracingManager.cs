@@ -61,7 +61,6 @@ namespace DatadogSharp.Tracing
         Stopwatch duration;
         int? error = null;
         Dictionary<string, string> meta = null;
-        Dictionary<string, double> metrics = null;
 
         StructBuffer<Span> spans;
         TracingManager manager;
@@ -102,12 +101,6 @@ namespace DatadogSharp.Tracing
             return this;
         }
 
-        public TracingScope WithMetrics(Dictionary<string, double> metrics)
-        {
-            this.metrics = metrics;
-            return this;
-        }
-
         public void Dispose()
         {
             if (duration == null) throw new ObjectDisposedException("already disposed");
@@ -126,7 +119,6 @@ namespace DatadogSharp.Tracing
                 ParentId = null,
                 Error = error,
                 Meta = meta,
-                Metrics = metrics,
             };
             spans.Add(ref span);
 
@@ -152,7 +144,6 @@ namespace DatadogSharp.Tracing
         Stopwatch duration;
         int? error = null;
         Dictionary<string, string> meta = null;
-        Dictionary<string, double> metrics = null;
 
         internal SpanScope(string name, string resource, string service, string type, ulong parentId, TracingScope rootScope)
         {
@@ -184,12 +175,6 @@ namespace DatadogSharp.Tracing
             return this;
         }
 
-        public SpanScope WithMetrics(Dictionary<string, double> metrics)
-        {
-            this.metrics = metrics;
-            return this;
-        }
-
         public void Dispose()
         {
             if (duration == null) throw new ObjectDisposedException("already disposed");
@@ -208,7 +193,6 @@ namespace DatadogSharp.Tracing
                 ParentId = parentId,
                 Error = error,
                 Meta = meta,
-                Metrics = metrics,
             };
 
             rootScope.AddSpan(span);

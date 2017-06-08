@@ -22,7 +22,6 @@ namespace SandboxNetCore
                 Start = 1481215590883401105,
                 Duration = 1000000000,
                 Meta = new Dictionary<string, string> { { "http.host", "" } },
-                Metrics = new Dictionary<string, double> { { "http.monitor", 41.99 } },
             };
         }
 

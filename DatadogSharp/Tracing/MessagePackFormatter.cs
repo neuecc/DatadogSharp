@@ -64,7 +64,6 @@ namespace DatadogSharp.Tracing
             Encoding.UTF8.GetBytes("parent_id"),
             Encoding.UTF8.GetBytes("error"),
             Encoding.UTF8.GetBytes("meta"),
-            Encoding.UTF8.GetBytes("metrics"),
         };
 
         public int Serialize(ref byte[] bytes, int offset, Span value, global::MessagePack.IFormatterResolver formatterResolver)
@@ -81,7 +80,6 @@ namespace DatadogSharp.Tracing
             if (value.ParentId != null) headerSize++;
             if (value.Error != null) headerSize++;
             if (value.Meta != null) headerSize++;
-            if (value.Metrics != null) headerSize++;
             offset += global::MessagePack.MessagePackBinary.WriteFixedMapHeaderUnsafe(ref bytes, offset, headerSize);
 
             // Required.
@@ -118,11 +116,7 @@ namespace DatadogSharp.Tracing
                 offset += global::MessagePack.MessagePackBinary.WriteStringBytes(ref bytes, offset, keyNameBytes[10]);
                 offset += formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, string>>().Serialize(ref bytes, offset, value.Meta, formatterResolver);
             }
-            if (value.Metrics != null)
-            {
-                offset += global::MessagePack.MessagePackBinary.WriteStringBytes(ref bytes, offset, keyNameBytes[11]);
-                offset += formatterResolver.GetFormatterWithVerify<global::System.Collections.Generic.Dictionary<string, double>>().Serialize(ref bytes, offset, value.Metrics, formatterResolver);
-            }
+         
             return offset - startOffset;
         }
 

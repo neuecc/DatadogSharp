@@ -50,9 +50,6 @@ namespace DatadogSharp.Tracing
         /// <summary>Optional.A dictionary of Key-value metadata. e.g.tags.</summary>
         [Key("meta")]
         public Dictionary<string, string> Meta { get; set; }
-        /// <summary>Optional.A dictionary of Key-value metrics data.Note: Keys must be strings, values must be numeric.</summary>
-        [Key("metrics")]
-        public Dictionary<string, double> Metrics { get; set; }
 
         public static ulong BuildRandomId()
         {
