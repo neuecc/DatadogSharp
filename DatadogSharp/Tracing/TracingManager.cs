@@ -24,6 +24,11 @@ namespace DatadogSharp.Tracing
             return new TracingScope(name, resource, service, type, this);
         }
 
+        public TracingScope BeginTracing(string name, string resource, string service, string type, ulong traceId, ulong parentId)
+        {
+            return new TracingScope(name, resource, service, type, this, traceId, parentId);
+        }
+
         public void EnqueueToWorker(Span[] tracing)
         {
             worker.Enqueue(tracing);
@@ -48,7 +53,14 @@ namespace DatadogSharp.Tracing
         }
     }
 
-    public class TracingScope : IDisposable
+    public interface ITracingScope : IDisposable
+    {
+        ITracingScope BeginSpan(string name, string resource, string service, string type);
+        ITracingScope WithError();
+        ITracingScope WithMeta(Dictionary<string, string> meta);
+    }
+
+    public class TracingScope : ITracingScope
     {
         public ulong TraceId { get; private set; }
         public string Name { get; private set; }
@@ -58,6 +70,8 @@ namespace DatadogSharp.Tracing
 
         readonly ulong spanId;
         readonly ulong start;
+        readonly ulong? parentId;
+
         Stopwatch duration;
         int? error = null;
         Dictionary<string, string> meta = null;
@@ -66,17 +80,23 @@ namespace DatadogSharp.Tracing
         TracingManager manager;
 
         public TracingScope(string name, string resource, string service, string type, TracingManager manager)
+            : this(name, resource, service, type, manager, Span.BuildRandomId(), null)
+        {
+        }
+
+        public TracingScope(string name, string resource, string service, string type, TracingManager manager, ulong traceId, ulong? parentId)
         {
             this.Name = name;
             this.Resource = resource;
             this.Service = service;
             this.Type = type;
-            this.TraceId = Span.BuildRandomId();
+            this.TraceId = traceId;
             this.spanId = Span.BuildRandomId();
             this.start = Span.ToNanoseconds(DateTime.UtcNow);
             this.duration = ThreadSafeUtil.RentStopwatchStartNew();
             this.manager = manager;
             this.spans = new StructBuffer<Span>(4);
+            this.parentId = parentId;
         }
 
         public void AddSpan(Span span)
@@ -84,18 +104,18 @@ namespace DatadogSharp.Tracing
             this.spans.Add(ref span);
         }
 
-        public SpanScope BeginSpan(string name, string resource, string service, string type)
+        public ITracingScope BeginSpan(string name, string resource, string service, string type)
         {
             return new SpanScope(name, resource, service, type, spanId, this);
         }
 
-        public TracingScope WithError()
+        public ITracingScope WithError()
         {
             error = 1;
             return this;
         }
 
-        public TracingScope WithMeta(Dictionary<string, string> meta)
+        public ITracingScope WithMeta(Dictionary<string, string> meta)
         {
             this.meta = meta;
             return this;
@@ -130,7 +150,7 @@ namespace DatadogSharp.Tracing
         }
     }
 
-    public class SpanScope : IDisposable
+    public class SpanScope : ITracingScope
     {
         readonly string name;
         readonly string resource;
@@ -158,18 +178,18 @@ namespace DatadogSharp.Tracing
             this.rootScope = rootScope;
         }
 
-        public SpanScope BeginSpan(string name, string resource, string service, string type)
+        public ITracingScope BeginSpan(string name, string resource, string service, string type)
         {
             return new SpanScope(name, resource, service, type, spanId, rootScope);
         }
 
-        public SpanScope WithError()
+        public ITracingScope WithError()
         {
             error = 1;
             return this;
         }
 
-        public SpanScope WithMeta(Dictionary<string, string> meta)
+        public ITracingScope WithMeta(Dictionary<string, string> meta)
         {
             this.meta = meta;
             return this;
