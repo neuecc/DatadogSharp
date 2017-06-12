@@ -85,6 +85,8 @@ namespace DatadogSharp.Tracing
         StructBuffer<Span> spans;
         TracingManager manager;
 
+        readonly object gate = new object();
+
         public TracingScope(string name, string resource, string service, string type, TracingManager manager)
             : this(name, resource, service, type, manager, Span.BuildRandomId(), null)
         {
@@ -107,7 +109,11 @@ namespace DatadogSharp.Tracing
 
         public void AddSpan(Span span)
         {
-            this.spans.Add(ref span);
+            // thread safe only adding
+            lock (gate)
+            {
+                this.spans.Add(ref span);
+            }
         }
 
         public ITracingScope BeginSpan(string name, string resource, string service, string type)
@@ -146,12 +152,16 @@ namespace DatadogSharp.Tracing
                 Error = error,
                 Meta = meta,
             };
-            spans.Add(ref span);
 
             ThreadSafeUtil.ReturnStopwatch(duration);
             duration = null;
 
-            var array = spans.ToArray();
+            Span[] array;
+            lock (gate)
+            {
+                spans.Add(ref span);
+                array = spans.ToArray();
+            }
             manager.EnqueueToWorker(array);
         }
     }
