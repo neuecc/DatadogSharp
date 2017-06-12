@@ -55,6 +55,12 @@ namespace DatadogSharp.Tracing
 
     public interface ITracingScope : IDisposable
     {
+        ulong TraceId { get; }
+        string Name { get; }
+        string Resource { get; }
+        string Service { get; }
+        string Type { get; }
+
         ITracingScope BeginSpan(string name, string resource, string service, string type);
         ITracingScope WithError();
         ITracingScope WithMeta(Dictionary<string, string> meta);
@@ -152,10 +158,11 @@ namespace DatadogSharp.Tracing
 
     public class SpanScope : ITracingScope
     {
-        readonly string name;
-        readonly string resource;
-        readonly string service;
-        readonly string type;
+        public ulong TraceId { get; }
+        public string Name { get; }
+        public string Resource { get; }
+        public string Service { get; }
+        public string Type { get; }
         readonly ulong parentId;
         readonly ulong spanId;
         readonly ulong start;
@@ -167,10 +174,11 @@ namespace DatadogSharp.Tracing
 
         internal SpanScope(string name, string resource, string service, string type, ulong parentId, TracingScope rootScope)
         {
-            this.name = name;
-            this.resource = resource;
-            this.service = service;
-            this.type = type;
+            this.TraceId = rootScope.TraceId;
+            this.Name = name;
+            this.Resource = resource;
+            this.Service = service;
+            this.Type = type;
             this.parentId = parentId;
             this.start = Span.ToNanoseconds(DateTime.UtcNow);
             this.duration = ThreadSafeUtil.RentStopwatchStartNew();
@@ -202,12 +210,12 @@ namespace DatadogSharp.Tracing
 
             var span = new Span
             {
-                TraceId = rootScope.TraceId,
+                TraceId = TraceId,
                 SpanId = spanId,
-                Name = name,
-                Resource = resource,
-                Service = service,
-                Type = type,
+                Name = Name,
+                Resource = Resource,
+                Service = Service,
+                Type = Type,
                 Start = start,
                 Duration = Span.ToNanoseconds(duration.Elapsed),
                 ParentId = parentId,
