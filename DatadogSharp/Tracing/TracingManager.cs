@@ -70,7 +70,7 @@ namespace DatadogSharp.Tracing
         }
     }
 
-    public class TracingScope
+    public class TracingScope : IDisposable
     {
         public ulong TraceId { get; private set; }
         public string Name { get; private set; }
@@ -234,7 +234,7 @@ namespace DatadogSharp.Tracing
         }
     }
 
-    public class SpanScope
+    public class SpanScope : IDisposable
     {
         public ulong TraceId { get; }
         public string Name { get; }
