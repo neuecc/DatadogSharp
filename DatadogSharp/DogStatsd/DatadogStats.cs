@@ -277,7 +277,7 @@ namespace DatadogSharp.DogStatsd
         public static CounterScope StartNew(DatadogStats dogstats, string metricName, long value, string[] tags)
         {
             dogstats.Counter(metricName, value, tags: tags);
-            return new CounterScope { ds = dogstats, metricName = metricName, tags = tags };
+            return new CounterScope { ds = dogstats, metricName = metricName, value = value, tags = tags };
         }
 
         public void Dispose()

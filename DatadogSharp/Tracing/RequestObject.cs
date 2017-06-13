@@ -53,6 +53,7 @@ namespace DatadogSharp.Tracing
 
         public static ulong BuildRandomId()
         {
+            // Note:should return true ulong random.
             return (ulong)ThreadSafeUtil.ThreadStaticRandom.Next(0, int.MaxValue);
         }
 

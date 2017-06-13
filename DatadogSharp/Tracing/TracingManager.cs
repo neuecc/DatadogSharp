@@ -19,11 +19,28 @@ namespace DatadogSharp.Tracing
             worker = new AsyncQueueWorker(client, bufferingCount, bufferingTimeMilliseconds, logException);
         }
 
+        /// <summary>
+        /// Begin the root tracing, when TracingScope.Dispose, finish measurement and enqueue to send worker.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
         public TracingScope BeginTracing(string name, string resource, string service, string type)
         {
             return new TracingScope(name, resource, service, type, this);
         }
 
+        /// <summary>
+        /// Begin the root tracing, when TracingScope.Dispose, finish measurement and enqueue to send worker.
+        /// When use distributed monitoring, set traceId and parentId from other machine.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
+        /// <param name="traceId">TraceId from other machine.</param>
+        /// <param name="parentId">ParentId of tracing.</param>
         public TracingScope BeginTracing(string name, string resource, string service, string type, ulong traceId, ulong parentId)
         {
             return new TracingScope(name, resource, service, type, this, traceId, parentId);
@@ -53,28 +70,15 @@ namespace DatadogSharp.Tracing
         }
     }
 
-    public interface ITracingScope : IDisposable
-    {
-        ulong TraceId { get; }
-        string Name { get; }
-        string Resource { get; }
-        string Service { get; }
-        string Type { get; }
-
-        ITracingScope BeginSpan(string name, string resource, string service, string type);
-        ITracingScope WithError();
-        ITracingScope WithMeta(Dictionary<string, string> meta);
-    }
-
-    public class TracingScope : ITracingScope
+    public class TracingScope
     {
         public ulong TraceId { get; private set; }
         public string Name { get; private set; }
         public string Resource { get; private set; }
         public string Service { get; private set; }
         public string Type { get; private set; }
+        public ulong SpanId { get; private set; }
 
-        readonly ulong spanId;
         readonly ulong start;
         readonly ulong? parentId;
 
@@ -86,6 +90,10 @@ namespace DatadogSharp.Tracing
         TracingManager manager;
 
         readonly object gate = new object();
+
+        // managing ambient global
+        // Note:concurrent child count is small in most cases, List is almost fast.
+        List<SpanScope> ambientManageQueue = null;
 
         public TracingScope(string name, string resource, string service, string type, TracingManager manager)
             : this(name, resource, service, type, manager, Span.BuildRandomId(), null)
@@ -99,7 +107,7 @@ namespace DatadogSharp.Tracing
             this.Service = service;
             this.Type = type;
             this.TraceId = traceId;
-            this.spanId = Span.BuildRandomId();
+            this.SpanId = Span.BuildRandomId();
             this.start = Span.ToNanoseconds(DateTime.UtcNow);
             this.duration = ThreadSafeUtil.RentStopwatchStartNew();
             this.manager = manager;
@@ -109,25 +117,85 @@ namespace DatadogSharp.Tracing
 
         public void AddSpan(Span span)
         {
-            // thread safe only adding
+            // thread safe adding
             lock (gate)
             {
                 this.spans.Add(ref span);
             }
         }
 
-        public ITracingScope BeginSpan(string name, string resource, string service, string type)
+        internal void AddSpanAndRemoveAmbient(Span span, SpanScope scope)
         {
-            return new SpanScope(name, resource, service, type, spanId, this);
+            lock (gate)
+            {
+                this.spans.Add(ref span);
+
+                if (ambientManageQueue != null && ambientManageQueue.Count != 0)
+                {
+                    ambientManageQueue.Remove(scope);
+                }
+            }
         }
 
-        public ITracingScope WithError()
+        /// <summary>
+        /// Begin the child tracing, when SpanScope.Dispose, finish measurement and add span to root tracing.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
+        public SpanScope BeginSpan(string name, string resource, string service, string type)
+        {
+            lock (gate)
+            {
+                if (ambientManageQueue == null || ambientManageQueue.Count == 0)
+                {
+                    return new SpanScope(name, resource, service, type, SpanId, this, false);
+                }
+                else
+                {
+                    var lastChild = ambientManageQueue[ambientManageQueue.Count - 1];
+                    return lastChild.BeginSpan(name, resource, service, type);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Replace returned child scope as ambient root.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
+        public SpanScope BeginSpanAndChangeAmbientScope(string name, string resource, string service, string type)
+        {
+            lock (gate)
+            {
+                if (ambientManageQueue == null) ambientManageQueue = new List<SpanScope>(4);
+
+                SpanScope scope;
+                if (ambientManageQueue.Count == 0)
+                {
+                    scope = new SpanScope(name, resource, service, type, SpanId, this, true);
+                }
+                else
+                {
+                    var lastChild = ambientManageQueue[ambientManageQueue.Count - 1];
+                    scope = lastChild.BeginSpan(name, resource, service, type, true);
+                }
+
+                ambientManageQueue.Add(scope);
+                return scope;
+            }
+        }
+
+        public TracingScope WithError()
         {
             error = 1;
             return this;
         }
 
-        public ITracingScope WithMeta(Dictionary<string, string> meta)
+        public TracingScope WithMeta(Dictionary<string, string> meta)
         {
             this.meta = meta;
             return this;
@@ -141,7 +209,7 @@ namespace DatadogSharp.Tracing
             var span = new Span
             {
                 TraceId = TraceId,
-                SpanId = spanId,
+                SpanId = SpanId,
                 Name = Name,
                 Resource = Resource,
                 Service = Service,
@@ -166,23 +234,25 @@ namespace DatadogSharp.Tracing
         }
     }
 
-    public class SpanScope : ITracingScope
+    public class SpanScope
     {
         public ulong TraceId { get; }
         public string Name { get; }
         public string Resource { get; }
         public string Service { get; }
         public string Type { get; }
+        public ulong SpanId { get; }
+
         readonly ulong parentId;
-        readonly ulong spanId;
         readonly ulong start;
         readonly TracingScope rootScope;
+        readonly bool isAmbientGlobal;
 
         Stopwatch duration;
         int? error = null;
         Dictionary<string, string> meta = null;
 
-        internal SpanScope(string name, string resource, string service, string type, ulong parentId, TracingScope rootScope)
+        internal SpanScope(string name, string resource, string service, string type, ulong parentId, TracingScope rootScope, bool isAmbientGlobal)
         {
             this.TraceId = rootScope.TraceId;
             this.Name = name;
@@ -192,22 +262,35 @@ namespace DatadogSharp.Tracing
             this.parentId = parentId;
             this.start = Span.ToNanoseconds(DateTime.UtcNow);
             this.duration = ThreadSafeUtil.RentStopwatchStartNew();
-            this.spanId = Span.BuildRandomId();
+            this.SpanId = Span.BuildRandomId();
             this.rootScope = rootScope;
+            this.isAmbientGlobal = isAmbientGlobal;
         }
 
-        public ITracingScope BeginSpan(string name, string resource, string service, string type)
+        /// <summary>
+        /// Begin the child tracing, when SpanScope.Dispose, finish measurement and add span to root tracing.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
+        public SpanScope BeginSpan(string name, string resource, string service, string type)
         {
-            return new SpanScope(name, resource, service, type, spanId, rootScope);
+            return new SpanScope(name, resource, service, type, SpanId, rootScope, false);
         }
 
-        public ITracingScope WithError()
+        internal SpanScope BeginSpan(string name, string resource, string service, string type, bool isAmbientGlobal)
+        {
+            return new SpanScope(name, resource, service, type, SpanId, rootScope, isAmbientGlobal);
+        }
+
+        public SpanScope WithError()
         {
             error = 1;
             return this;
         }
 
-        public ITracingScope WithMeta(Dictionary<string, string> meta)
+        public SpanScope WithMeta(Dictionary<string, string> meta)
         {
             this.meta = meta;
             return this;
@@ -221,7 +304,7 @@ namespace DatadogSharp.Tracing
             var span = new Span
             {
                 TraceId = TraceId,
-                SpanId = spanId,
+                SpanId = SpanId,
                 Name = Name,
                 Resource = Resource,
                 Service = Service,
@@ -233,7 +316,14 @@ namespace DatadogSharp.Tracing
                 Meta = meta,
             };
 
-            rootScope.AddSpan(span);
+            if (isAmbientGlobal)
+            {
+                rootScope.AddSpanAndRemoveAmbient(span, this);
+            }
+            else
+            {
+                rootScope.AddSpan(span);
+            }
 
             ThreadSafeUtil.ReturnStopwatch(duration);
             duration = null;

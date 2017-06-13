@@ -1,8 +1,10 @@
 ﻿using DatadogSharp.Tracing;
 using MessagePack;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace SandboxNetCore
 {
@@ -27,6 +29,32 @@ namespace SandboxNetCore
 
         static void Main(string[] args)
         {
+            //var scope = TracingManager.Default.BeginTracing("hoge", "huga", "tako", "nano");
+
+
+            //var scopes = new ConcurrentQueue<SpanScope>();
+
+            //Parallel.For(0, 100, i =>
+            //{
+            //    var hoge = scope.BeginSpanAndChangeAmbientScope("hoge", "huga", "tako", "nano");
+            //    scopes.Enqueue(hoge);
+            //});
+
+
+            //Console.WriteLine("tako");
+
+
+            //var huga = scope.BeginSpan("hoge", "huga", "tako", "nano");
+
+            //Parallel.ForEach(scopes, x => x.Dispose());
+
+            //huga.Dispose();
+
+            //Console.WriteLine("nano");
+
+            //var aahuga = scope.BeginSpanAndChangeAmbientScope("hoge", "huga", "tako", "nano");
+            // TracingManager.Default.Complete
+
             //using (var scope = TracingManager.Default.BeginTracing("my_test_trace_root", "/home/index", "Service2", "Web"))
             //{
             //    using (var parent = scope.BeginSpan("my_span", "Redis"))

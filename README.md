@@ -7,8 +7,6 @@ A [Datadog](https://www.datadoghq.com/) client for C# which transport metrics to
 
 Additionaly supports [Datadog APM](https://www.datadoghq.com/apm/) API for [Datadog trace agent](https://github.com/DataDog/datadog-trace-agent) with my fastest [MessagePack for C#](https://github.com/neuecc/MessagePack-CSharp) implements. This is only C# SDK which supports APM.
 
-> 1.3.0 supports APM but not yet documented.
-
 # Installation
 
 The library provides in NuGet for .NET Standard 1.4(.NET Framework(4.6.1) and .NET Core).
@@ -17,7 +15,7 @@ The library provides in NuGet for .NET Standard 1.4(.NET Framework(4.6.1) and .N
 Install-Package DatadogSharp
 ```
 
-# How to use
+# How to use(DogStatsd)
 
 At first, configure transport address on application startup.
 
@@ -67,22 +65,29 @@ If you want to use another configuration(meric prefix, default tags), you can cr
 var anotherStats = new DatadogStats("127.0.0.1", 9999);
 ```
 
-# Caching storategy
+# How to use(APM)
 
-If every time sends same message, you can cache byte[] and use it.
+APM's entrypoint is `TracingManager`. Here is the simple sample of APM Client.
 
-```csharp
-// If always same.
-DatadogStats.Default.Increment("myIncr", tags: new[] { "mytag" });
 
-// Create command manualy and cache it
-var stringCommand = DogStatsDFormatter.Counter(DatadogStats.Default.WithPrefix("myIncr"), 1, 1.0, DatadogStats.Default.WithDefaultTag(new[] { "mytag" }));
-var cachedBytes = Encoding.UTF8.GetBytes(stringCommand);
+`TracingManager`
 
-// you can send cachedBytes everytime...
-DatadogStats.Default.Send(cachedBytes);
-DatadogStats.Default.Send(cachedBytes);
-DatadogStats.Default.Send(cachedBytes);
+
+
+`IDisposable.Dispose` means Finish.
+
+
+
+
+
+# Advanced(APM)
+
+`DatadogClient` is wrapper of HttpClient to access APM endpoint.
+
+
+
+
+
 ```
 
 Author Info
