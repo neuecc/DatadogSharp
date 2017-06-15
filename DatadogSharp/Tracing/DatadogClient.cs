@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
@@ -61,7 +62,8 @@ namespace DatadogSharp.Tracing
 
         public Task<string> Traces(Span[][] traces, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var content = new ByteArrayContent(MessagePack.MessagePackSerializer.Serialize(traces, DatadogSharpResolver.Instance));
+            var bytes = MessagePack.MessagePackSerializer.Serialize(traces, DatadogSharpResolver.Instance);
+            var content = new ByteArrayContent(bytes);
             content.Headers.ContentType = msgPackHeader;
 
             return Post("v0.3/traces", content, cancellationToken);

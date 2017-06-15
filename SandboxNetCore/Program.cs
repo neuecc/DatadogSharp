@@ -3,6 +3,7 @@ using MessagePack;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -29,48 +30,25 @@ namespace SandboxNetCore
 
         static void Main(string[] args)
         {
-            //var scope = TracingManager.Default.BeginTracing("hoge", "huga", "tako", "nano");
+            TracingManager.Default.SetExceptionLogger(x => Console.WriteLine(x));
 
 
-            //var scopes = new ConcurrentQueue<SpanScope>();
-
-            //Parallel.For(0, 100, i =>
-            //{
-            //    var hoge = scope.BeginSpanAndChangeAmbientScope("hoge", "huga", "tako", "nano");
-            //    scopes.Enqueue(hoge);
-            //});
+            var tracing = TracingManager.Default.BeginTracing("hoge", "huga", "tako", "nano");
+            tracing.Dispose();
 
 
-            //Console.WriteLine("tako");
+            Thread.Sleep(TimeSpan.FromSeconds(3));
 
 
-            //var huga = scope.BeginSpan("hoge", "huga", "tako", "nano");
+            TracingManager.Default.Complete(TimeSpan.FromSeconds(5));
 
-            //Parallel.ForEach(scopes, x => x.Dispose());
 
-            //huga.Dispose();
 
-            //Console.WriteLine("nano");
 
-            //var aahuga = scope.BeginSpanAndChangeAmbientScope("hoge", "huga", "tako", "nano");
-            // TracingManager.Default.Complete
 
-            //using (var scope = TracingManager.Default.BeginTracing("my_test_trace_root", "/home/index", "Service2", "Web"))
-            //{
-            //    using (var parent = scope.BeginSpan("my_span", "Redis"))
-            //    {
-            //        using (parent.BeginSpan("my_span2", "/huga/tako", "BattleEngine", "Redis"))
-            //        {
-            //            Thread.Sleep(TimeSpan.FromSeconds(1));
-            //        }
-            //        Thread.Sleep(TimeSpan.FromSeconds(2));
-            //    }
 
-            //    Thread.Sleep(TimeSpan.FromSeconds(4.5));
-            //}
-
-            //Thread.Sleep(TimeSpan.FromSeconds(10));
-            // TracingManager.Default.Complete();
+            Console.ReadLine();
+            Console.WriteLine("hogehogemogemoge");
         }
     }
 }

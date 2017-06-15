@@ -10,6 +10,7 @@ namespace DatadogSharp.Tracing
     // http://docs.datadoghq.com/tracing/api/
 
     [MessagePackObject]
+    [MessagePackFormatter(typeof(SpanFormatter))]
     public class Span
     {
         // Required.
@@ -84,6 +85,7 @@ namespace DatadogSharp.Tracing
     }
 
     [MessagePackObject]
+    [MessagePackFormatter(typeof(ServiceFormatter))]
     public class Service
     {
         [IgnoreMember]

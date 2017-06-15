@@ -103,10 +103,11 @@ namespace DatadogSharp.Tracing
         {
             if (Interlocked.Increment(ref isDisposed) == 1)
             {
-                cancellationTokenSource.Cancel();
-                processingTask.Wait(waitTimeout);
                 try
                 {
+                    cancellationTokenSource.Cancel();
+                    processingTask.Wait(waitTimeout);
+
                     // rest line...
                     var lastLine = q.ToArray();
                     client.Traces(lastLine).Wait(waitTimeout);
