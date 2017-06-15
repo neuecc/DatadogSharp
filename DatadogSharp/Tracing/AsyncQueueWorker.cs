@@ -81,15 +81,16 @@ namespace DatadogSharp.Tracing
                 }
                 catch (OperationCanceledException)
                 {
-                    break;
+                    await Task.Delay(bufferingTime, cancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (ObjectDisposedException)
                 {
-                    break;
+                    await Task.Delay(bufferingTime, cancellationTokenSource.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
                     logException(ex);
+                    await Task.Delay(bufferingTime, cancellationTokenSource.Token).ConfigureAwait(false);
                 }
             }
         }
