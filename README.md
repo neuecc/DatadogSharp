@@ -88,7 +88,6 @@ APM's entrypoint is `TracingManager`. Here is the simple sample of APM Client.
 
 
 
-```
 
 Author Info
 ---
