@@ -32,12 +32,23 @@ namespace DatadogSharp.Tracing
             index = 0;
         }
 
+        public void ClearStrict()
+        {
+            Array.Clear(array, 0, array.Length);
+            index = 0;
+        }
+
         public T[] ToArray()
         {
             if (array.Length == index) return array;
 
             Array.Resize(ref array, index);
             return array;
+        }
+
+        public ArraySegment<T> GetBuffer()
+        {
+            return new ArraySegment<T>(array, 0, index);
         }
     }
 }

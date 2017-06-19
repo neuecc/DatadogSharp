@@ -11,11 +11,11 @@ namespace SandboxNetCore
 {
     class Program
     {
-        static Span GetTestSpan()
+        static Span GetTestSpan(ulong i)
         {
             return new Span
             {
-                TraceId = 42,
+                TraceId = i,
                 SpanId = 52,
                 ParentId = 42,
                 Type = "web",
@@ -32,20 +32,10 @@ namespace SandboxNetCore
         {
             TracingManager.Default.SetExceptionLogger(x => Console.WriteLine(x));
 
-
-            var tracing = TracingManager.Default.BeginTracing("hoge", "huga", "tako", "nano");
-            tracing.Dispose();
-
-
-            Thread.Sleep(TimeSpan.FromSeconds(3));
-
-
-            TracingManager.Default.Complete(TimeSpan.FromSeconds(5));
-
-
-
-
-
+            for (ulong i = 0; i < 46; i++)
+            {
+                TracingManager.Default.EnqueueToWorker(new[] { GetTestSpan(i) });
+            }
 
             Console.ReadLine();
             Console.WriteLine("hogehogemogemoge");

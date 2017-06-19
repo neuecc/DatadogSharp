@@ -69,6 +69,15 @@ namespace DatadogSharp.Tracing
             return Post("v0.3/traces", content, cancellationToken);
         }
 
+        public Task<string> Traces(ArraySegment<Span[]> traces, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var bytes = MessagePack.MessagePackSerializer.Serialize(traces, DatadogSharpResolver.Instance);
+            var content = new ByteArrayContent(bytes);
+            content.Headers.ContentType = msgPackHeader;
+
+            return Post("v0.3/traces", content, cancellationToken);
+        }
+
         public Task<string> Services(Service service, CancellationToken cancellationToken = default(CancellationToken))
         {
             var content = new ByteArrayContent(MessagePack.MessagePackSerializer.Serialize(service, DatadogSharpResolver.Instance));

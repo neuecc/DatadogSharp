@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Linq;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -7,10 +8,16 @@ namespace DatadogSharp.Tracing
 {
     internal class AsyncQueueWorker
     {
-        readonly ConcurrentQueue<Span[]> q = new ConcurrentQueue<Span[]>();
-        readonly DatadogClient client;
-        Action<Exception> logException;
+        // to datadog agent concurrent request
+        const int ConcurrentRequestCountLimit = 4;
 
+        // ConcurrentQueue vs locked simple array, I choose locked array.
+        StructBuffer<Span[]> globalQueue = new StructBuffer<Span[]>(); // avoid readonly because this is mutable struct
+        readonly object queueLock = new object();
+
+        readonly DatadogClient client;
+
+        Action<Exception> logException;
         TimeSpan bufferingTime;
         int bufferingCount;
 
@@ -20,11 +27,14 @@ namespace DatadogSharp.Tracing
 
         public AsyncQueueWorker(DatadogClient client, int bufferingCount = 10, int bufferingTimeMilliseconds = 5000, Action<Exception> logException = null)
         {
-            this.processingTask = Task.Factory.StartNew(ConsumeQueue, TaskCreationOptions.LongRunning).Unwrap();
+            this.globalQueue = new StructBuffer<Span[]>(16);
             this.client = client;
             this.logException = logException ?? ((Exception ex) => { });
             this.bufferingCount = bufferingCount;
             this.bufferingTime = TimeSpan.FromMilliseconds(bufferingTimeMilliseconds);
+
+            // Start
+            this.processingTask = Task.Factory.StartNew(ConsumeQueue, TaskCreationOptions.LongRunning).Unwrap();
         }
 
         public void SetBufferingParameter(int bufferingCount, int bufferingTimeMilliseconds)
@@ -45,39 +55,69 @@ namespace DatadogSharp.Tracing
             {
                 try
                 {
-                    var loopCount = bufferingCount;
+                    Task waiter = null;
+                    Span[][] singleTraces = null;
+                    Span[][] multipleTraces = null;
 
-                    buffer.Clear();
-                    var addCount = 0;
-                    for (int i = 0; i < loopCount; i++)
+                    lock (queueLock)
                     {
-                        Span[] nextTrace;
-                        if (q.TryDequeue(out nextTrace))
+                        var rawEnqueuedArray = globalQueue.GetBuffer();
+
+                        if (rawEnqueuedArray.Count == 0)
                         {
-                            addCount++;
-                            buffer.Add(ref nextTrace);
+                            waiter = Task.Delay(bufferingTime, cancellationTokenSource.Token);
+                        }
+                        else if (rawEnqueuedArray.Count < bufferingCount)
+                        {
+                            singleTraces = new Span[rawEnqueuedArray.Count][];
+                            Array.Copy(rawEnqueuedArray.Array, singleTraces, singleTraces.Length);
+
+                            globalQueue.ClearStrict();
                         }
                         else
                         {
-                            break;
+                            multipleTraces = new Span[rawEnqueuedArray.Count][];
+                            Array.Copy(rawEnqueuedArray.Array, multipleTraces, multipleTraces.Length);
+
+                            globalQueue.ClearStrict();
                         }
                     }
 
-                    if (addCount == 0)
+                    if (waiter != null)
                     {
-                        try
+                        await waiter.ConfigureAwait(false);
+                    }
+                    else if (singleTraces != null)
+                    {
+                        // does not pass cancellation token.
+                        await client.Traces(singleTraces).ConfigureAwait(false);
+                    }
+                    else if (multipleTraces != null)
+                    {
+                        for (int i = 0; i < multipleTraces.Length;)
                         {
-                            await Task.Delay(bufferingTime, cancellationTokenSource.Token).ConfigureAwait(false);
-                        }
-                        catch (TaskCanceledException)
-                        {
+                            var tasks = new Task[Math.Min(ConcurrentRequestCountLimit, multipleTraces.Length - i)];
+                            for (int j = 0; j < tasks.Length; j++)
+                            {
+                                var len = Math.Min(bufferingCount, multipleTraces.Length - i);
+                                if (len <= 0)
+                                {
+                                    Array.Resize(ref tasks, j);
+                                    break;
+                                }
+
+                                var segment = new ArraySegment<Span[]>(multipleTraces, i, len);
+                                i += len;
+
+                                tasks[j] = client.Traces(segment);
+                            }
+
+                            await Task.WhenAll(tasks).ConfigureAwait(false);
                         }
                     }
-                    else
-                    {
-                        var traces = buffer.ToArray();
-                        await client.Traces(traces).ConfigureAwait(false);
-                    }
+                }
+                catch (TaskCanceledException)
+                {
                 }
                 catch (OperationCanceledException)
                 {
@@ -97,7 +137,10 @@ namespace DatadogSharp.Tracing
 
         public void Enqueue(Span[] value)
         {
-            q.Enqueue(value);
+            lock (queueLock)
+            {
+                globalQueue.Add(ref value);
+            }
         }
 
         public void Complete(TimeSpan waitTimeout)
@@ -110,8 +153,22 @@ namespace DatadogSharp.Tracing
                     processingTask.Wait(waitTimeout);
 
                     // rest line...
-                    var lastLine = q.ToArray();
-                    client.Traces(lastLine).Wait(waitTimeout);
+                    Span[][] lastTraces = null;
+                    lock (queueLock)
+                    {
+                        var rawEnqueuedArray = globalQueue.GetBuffer();
+
+                        if (rawEnqueuedArray.Count != 0)
+                        {
+                            lastTraces = new Span[rawEnqueuedArray.Count][];
+                            Array.Copy(rawEnqueuedArray.Array, lastTraces, lastTraces.Length);
+                        }
+                    }
+
+                    if (lastTraces != null)
+                    {
+                        client.Traces(lastTraces).Wait(waitTimeout);
+                    }
                 }
                 catch (Exception ex)
                 {
