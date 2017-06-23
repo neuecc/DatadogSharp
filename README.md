@@ -91,8 +91,6 @@ using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index",
 
 `BeginSpan` returns `SpanScope`, it starts child tracing, when calls `SpanScope.Dispose`(or use using scope) finish measurement and add span to root tracing.
 
-# Metadata and nested scope
-
 `TracingScope` and `SpanScope` have `WithMeta` and `WithError` methods for append additional info.
 
 ```csharp
@@ -101,6 +99,11 @@ using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index",
     try
     {
         // do anything...
+        var userId = ....
+        trace.WithMeta(new Dictionary<string, string>
+        {
+            {"userId", userId.ToString() }
+        });
     }
     catch (Exception ex)
     {
@@ -112,6 +115,36 @@ using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index",
     }
 }
 ```
+
+```csharp
+void Application_BeginRequest()
+{
+    var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index", "webservice", "web");
+    HttpContext.Current.Items["DatadogTracingScope"] = trace;
+}
+
+void Application_EndRequest()
+{
+    var scope = HttpContext.Current.Items["DatadogTracingScope"] as TracingScope;
+    scope?.Dispose(); // complete scope.
+}
+
+void Application_Error()
+{
+    var scope = HttpContext.Current.Items["DatadogTracingScope"] as TracingScope;
+    var ex = Server.GetLastError();
+    scope.WithError();
+    scope.WithMeta(x =>
+    {
+        x.Add("exception", ex.ToString());
+    });
+}
+```
+
+
+
+
+ASP.NET Core in `IHttpContextAccessor`
 
 
 
