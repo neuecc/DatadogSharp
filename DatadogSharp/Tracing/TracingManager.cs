@@ -201,6 +201,16 @@ namespace DatadogSharp.Tracing
             return this;
         }
 
+        public TracingScope WithMeta(Action<Dictionary<string, string>> metaModifier)
+        {
+            if (this.meta == null)
+            {
+                this.meta = new Dictionary<string, string>();
+            }
+            metaModifier(this.meta);
+            return this;
+        }
+
         public void Dispose()
         {
             if (duration == null) throw new ObjectDisposedException("already disposed");
@@ -293,6 +303,16 @@ namespace DatadogSharp.Tracing
         public SpanScope WithMeta(Dictionary<string, string> meta)
         {
             this.meta = meta;
+            return this;
+        }
+
+        public SpanScope WithMeta(Action<Dictionary<string, string>> metaModifier)
+        {
+            if (this.meta == null)
+            {
+                this.meta = new Dictionary<string, string>();
+            }
+            metaModifier(this.meta);
             return this;
         }
 

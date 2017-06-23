@@ -28,17 +28,31 @@ namespace SandboxNetCore
             };
         }
 
+        
+
         static void Main(string[] args)
         {
-            TracingManager.Default.SetExceptionLogger(x => Console.WriteLine(x));
 
-            for (ulong i = 0; i < 46; i++)
+            
+
+            using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index", "webservice", "web"))
             {
-                TracingManager.Default.EnqueueToWorker(new[] { GetTestSpan(i) });
+
+
+
+
             }
 
-            Console.ReadLine();
-            Console.WriteLine("hogehogemogemoge");
+
+
+            TracingManager.Default.Complete(TimeSpan.FromSeconds(5));
         }
+
+        //static Task RequestRedisAsync()
+        //{
+
+
+
+        //}
     }
 }

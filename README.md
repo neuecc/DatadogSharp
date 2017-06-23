@@ -69,12 +69,60 @@ var anotherStats = new DatadogStats("127.0.0.1", 9999);
 
 APM's entrypoint is `TracingManager`. Here is the simple sample of APM Client.
 
+```csharp
+using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index", "webservice", "web"))
+{
+    Thread.Sleep(TimeSpan.FromSeconds(1));
 
-`TracingManager`
+    using (trace.BeginSpan("QuerySql", trace.Resource, "sqlserver", "db"))
+    {
+        Thread.Sleep(TimeSpan.FromSeconds(2));
+    }
+
+    Thread.Sleep(TimeSpan.FromSeconds(2));
+}
+```
+
+![image](https://user-images.githubusercontent.com/46207/27419958-8e6e5faa-575e-11e7-8cab-1c93878d031b.png)
+
+> Windows binary of trace agent is in [datadog-trace-agent's releases page](https://github.com/DataDog/datadog-trace-agent/releases).
+
+`BeginTracing` returns `TracingScope`, it starts tracing as root, when calls `TracingScope.Dispose`(or use using scope) finish measurement and enqueue to send worker.
+
+`BeginSpan` returns `SpanScope`, it starts child tracing, when calls `SpanScope.Dispose`(or use using scope) finish measurement and add span to root tracing.
+
+# Metadata and nested scope
+
+`TracingScope` and `SpanScope` have `WithMeta` and `WithError` methods for append additional info.
+
+```csharp
+using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index", "webservice", "web"))
+{
+    try
+    {
+        // do anything...
+    }
+    catch (Exception ex)
+    {
+        trace.WithError(); // mark error.
+        trace.WithMeta(new Dictionary<string, string>
+        {
+            {"exception", ex.ToString() }
+        });
+    }
+}
+```
 
 
 
-`IDisposable.Dispose` means Finish.
+
+# Real sample
+
+In web, store `TraceScope` in `HttpContext`.
+
+you can store in [AsyncLocal](https://msdn.microsoft.com/en-us/library/dn906268.aspx).
+
+
 
 
 
