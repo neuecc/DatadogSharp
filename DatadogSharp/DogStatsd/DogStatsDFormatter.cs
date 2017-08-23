@@ -129,10 +129,14 @@ namespace DatadogSharp.DogStatsd
         {
             var sb = ThreadSafeUtil.RentThreadStaticStringBuilder();
 
+            // note: should more improve
+            var escapeTitle = title.Replace("\r", "").Replace("\n", "\\n");
+            var escapeText = text.Replace("\r", "").Replace("\n", "\\n");
+
             sb.Append("_e{");
             sb.Append(title.Length.ToString(InvaliantCultrue));
             sb.Append(",");
-            sb.Append(text.Length.ToString(InvaliantCultrue));
+            sb.Append((truncateText && text.Length > 4096) ? "4096" : text.Length.ToString(InvaliantCultrue));
             sb.Append("}:");
 
             sb.Append(title);
@@ -140,15 +144,12 @@ namespace DatadogSharp.DogStatsd
 
             if (truncateText && text.Length > 4096)
             {
-                sb.Append(text, 0, 4096); // optimize truncate.
+                sb.Append(text, 0, 4096); 
             }
             else
             {
                 sb.Append(text);
             }
-
-            // escape both title and text.
-            sb.Replace("\r", "").Replace("\n", "\\n");
 
             // Optional
             if (dateHappened != null)
