@@ -134,21 +134,21 @@ namespace DatadogSharp.DogStatsd
             var escapeText = text.Replace("\r", "").Replace("\n", "\\n");
 
             sb.Append("_e{");
-            sb.Append(title.Length.ToString(InvaliantCultrue));
+            sb.Append(escapeTitle.Length.ToString(InvaliantCultrue));
             sb.Append(",");
-            sb.Append((truncateText && text.Length > 4096) ? "4096" : text.Length.ToString(InvaliantCultrue));
+            sb.Append((truncateText && escapeText.Length > 4096) ? "4096" : escapeText.Length.ToString(InvaliantCultrue));
             sb.Append("}:");
 
-            sb.Append(title);
+            sb.Append(escapeTitle);
             sb.Append("|");
 
-            if (truncateText && text.Length > 4096)
+            if (truncateText && escapeText.Length > 4096)
             {
-                sb.Append(text, 0, 4096); 
+                sb.Append(escapeText, 0, 4096); 
             }
             else
             {
-                sb.Append(text);
+                sb.Append(escapeText);
             }
 
             // Optional

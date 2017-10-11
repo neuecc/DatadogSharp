@@ -32,20 +32,16 @@ namespace SandboxNetCore
 
         static void Main(string[] args)
         {
+            Console.WriteLine("hoge");
 
-            
+            DatadogSharp.DogStatsd.DatadogStats.ConfigureDefault("127.0.0.1");
 
-            using (var trace = TracingManager.Default.BeginTracing("Request", "/Home/Index", "webservice", "web"))
-            {
-
-
+            var sendStr = File.ReadAllText(@"C:\Users\y.kawai\Documents\Visual Studio 2017\Projects\ConsoleApp116\bin\Debug\hoge.txt");
 
 
-            }
+            DatadogSharp.DogStatsd.DatadogStats.Default.Event("hogehogehugahuga", sendStr);
 
 
-
-            TracingManager.Default.Complete(TimeSpan.FromSeconds(5));
         }
 
         //static Task RequestRedisAsync()

@@ -2,26 +2,31 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>DatadogSharp</id>
-        <version>1.4.6</version>
+        <version>1.4.8</version>
         <title>DatadogSharp</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
         <projectUrl>https://github.com/neuecc/MessagePack-CSharp/</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Yet another C# Datadog client that supports DogStatsD and APM.</description>
-        <releaseNotes>Stable API for APM</releaseNotes>
+        <releaseNotes>net45, netstandard2.0 support</releaseNotes>
         <tags>Datadog, StatsD</tags>
         <dependencies>
-            <group targetFramework=".NETStandard1.4">
+            <group targetFramework=".NETFramework4.5">
+                <dependency id="MessagePack" version="1.7.1" />
+            </group>
+            <group targetFramework=".NETStandard2.0">
+                <dependency id="MessagePack" version="1.7.1" />
+                <dependency id="System.Net.Http" version="4.3.1" />
                 <dependency id="System.Net.Sockets" version="4.3.0" />
                 <dependency id="System.Security.Cryptography.Algorithms" version="4.3.0" />
-                <dependency id="System.Net.Http" version="4.3.1" />
-                <dependency id="MessagePack" version="1.5.0.2" />
             </group>
         </dependencies>
     </metadata>
     <files>
         <file src="DatadogSharp\bin\Release\netstandard1.4\DatadogSharp.dll" target="lib\netstandard1.4" />
         <file src="DatadogSharp\bin\Release\netstandard1.4\DatadogSharp.xml" target="lib\netstandard1.4" />
+        <file src="DatadogSharp\bin\Release\net45\DatadogSharp.dll" target="lib\net45" />
+        <file src="DatadogSharp\bin\Release\net45\DatadogSharp.xml" target="lib\net45" />
     </files>
 </package>
