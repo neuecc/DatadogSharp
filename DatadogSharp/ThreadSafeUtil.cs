@@ -64,7 +64,10 @@ namespace DatadogSharp
 
         internal static void ReturnStopwatch(Stopwatch sw)
         {
-            stopwatchPool.Enqueue(sw);
+            if (sw != null)
+            {
+                stopwatchPool.Enqueue(sw);
+            }
         }
     }
 }

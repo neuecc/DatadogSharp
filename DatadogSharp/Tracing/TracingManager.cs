@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 
 namespace DatadogSharp.Tracing
 {
@@ -213,8 +214,9 @@ namespace DatadogSharp.Tracing
 
         public void Dispose()
         {
-            if (duration == null) throw new ObjectDisposedException("already disposed");
-            duration.Stop();
+            var stopwatch = Interlocked.Exchange(ref duration, null);
+            if (stopwatch == null) return;
+            stopwatch.Stop();
 
             var span = new Span
             {
@@ -225,14 +227,13 @@ namespace DatadogSharp.Tracing
                 Service = Service,
                 Type = Type,
                 Start = start,
-                Duration = Span.ToNanoseconds(duration.Elapsed),
+                Duration = Span.ToNanoseconds(stopwatch.Elapsed),
                 ParentId = null,
                 Error = error,
                 Meta = meta,
             };
 
-            ThreadSafeUtil.ReturnStopwatch(duration);
-            duration = null;
+            ThreadSafeUtil.ReturnStopwatch(stopwatch);
 
             Span[] array;
             lock (gate)
@@ -318,8 +319,10 @@ namespace DatadogSharp.Tracing
 
         public void Dispose()
         {
-            if (duration == null) throw new ObjectDisposedException("already disposed");
-            duration.Stop();
+            var stopwatch = Interlocked.Exchange(ref duration, null);
+            if (stopwatch == null) return;
+
+            stopwatch.Stop();
 
             var span = new Span
             {
@@ -330,7 +333,7 @@ namespace DatadogSharp.Tracing
                 Service = Service,
                 Type = Type,
                 Start = start,
-                Duration = Span.ToNanoseconds(duration.Elapsed),
+                Duration = Span.ToNanoseconds(stopwatch.Elapsed),
                 ParentId = parentId,
                 Error = error,
                 Meta = meta,
@@ -345,8 +348,7 @@ namespace DatadogSharp.Tracing
                 rootScope.AddSpan(span);
             }
 
-            ThreadSafeUtil.ReturnStopwatch(duration);
-            duration = null;
+            ThreadSafeUtil.ReturnStopwatch(stopwatch);
         }
     }
 }
