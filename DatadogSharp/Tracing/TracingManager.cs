@@ -80,6 +80,18 @@ namespace DatadogSharp.Tracing
         public string Type { get; private set; }
         public ulong SpanId { get; private set; }
 
+        public Dictionary<string, string> Meta
+        {
+            get
+            {
+                if (this.meta == null)
+                {
+                    this.meta = new Dictionary<string, string>();
+                }
+                return this.meta;
+            }
+        }
+
         readonly ulong start;
         readonly ulong? parentId;
 
@@ -295,6 +307,18 @@ namespace DatadogSharp.Tracing
         public string Service { get; private set; }
         public string Type { get; private set; }
         public ulong SpanId { get; }
+
+        public Dictionary<string, string> Meta
+        {
+            get
+            {
+                if (this.meta == null)
+                {
+                    this.meta = new Dictionary<string, string>();
+                }
+                return this.meta;
+            }
+        }
 
         readonly ulong parentId;
         readonly ulong start;
