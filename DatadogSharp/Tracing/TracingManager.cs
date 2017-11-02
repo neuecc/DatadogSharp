@@ -190,9 +190,51 @@ namespace DatadogSharp.Tracing
             }
         }
 
+        public TracingScope WithName(string name)
+        {
+            this.Name = name;
+            return this;
+        }
+
+        public TracingScope WithService(string service)
+        {
+            this.Service = service;
+            return this;
+        }
+
+        public TracingScope WithResource(string resource)
+        {
+            this.Resource = resource;
+            return this;
+        }
+
+        public TracingScope WithType(string type)
+        {
+            this.Type = type;
+            return this;
+        }
+
         public TracingScope WithError()
         {
             error = 1;
+            return this;
+        }
+
+        public TracingScope WithError(Exception exception, string additionalMessage = null)
+        {
+            error = 1;
+            if (this.meta == null)
+            {
+                this.meta = new Dictionary<string, string>();
+            }
+            this.meta["exception.type"] = exception.GetType().FullName;
+            this.meta["exception.stackTrace"] = exception.StackTrace;
+            this.meta["exception.message"] = exception.Message;
+            if (additionalMessage != null)
+            {
+                this.meta["error.message"] = additionalMessage;
+            }
+
             return this;
         }
 
@@ -248,10 +290,10 @@ namespace DatadogSharp.Tracing
     public class SpanScope : IDisposable
     {
         public ulong TraceId { get; }
-        public string Name { get; }
-        public string Resource { get; }
-        public string Service { get; }
-        public string Type { get; }
+        public string Name { get; private set; }
+        public string Resource { get; private set; }
+        public string Service { get; private set; }
+        public string Type { get; private set; }
         public ulong SpanId { get; }
 
         readonly ulong parentId;
@@ -293,6 +335,48 @@ namespace DatadogSharp.Tracing
         internal SpanScope BeginSpan(string name, string resource, string service, string type, bool isAmbientGlobal)
         {
             return new SpanScope(name, resource, service, type, SpanId, rootScope, isAmbientGlobal);
+        }
+
+        public SpanScope WithName(string name)
+        {
+            this.Name = name;
+            return this;
+        }
+
+        public SpanScope WithService(string service)
+        {
+            this.Service = service;
+            return this;
+        }
+
+        public SpanScope WithResource(string resource)
+        {
+            this.Resource = resource;
+            return this;
+        }
+
+        public SpanScope WithType(string type)
+        {
+            this.Type = type;
+            return this;
+        }
+
+        public SpanScope WithError(Exception exception, string additionalMessage = null)
+        {
+            error = 1;
+            if (this.meta == null)
+            {
+                this.meta = new Dictionary<string, string>();
+            }
+            this.meta["exception.type"] = exception.GetType().FullName;
+            this.meta["exception.stackTrace"] = exception.StackTrace;
+            this.meta["exception.message"] = exception.Message;
+            if (additionalMessage != null)
+            {
+                this.meta["error.message"] = additionalMessage;
+            }
+
+            return this;
         }
 
         public SpanScope WithError()
