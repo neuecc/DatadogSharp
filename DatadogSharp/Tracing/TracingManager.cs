@@ -5,9 +5,42 @@ using System.Threading;
 
 namespace DatadogSharp.Tracing
 {
-    public class TracingManager
+    public interface ITracingManager
     {
-        public static TracingManager Default = new TracingManager();
+        /// <summary>
+        /// Begin the root tracing, when TracingScope.Dispose, finish measurement and enqueue to send worker.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
+        TracingScope BeginTracing(string name, string resource, string service, string type);
+
+        /// <summary>
+        /// Begin the root tracing, when TracingScope.Dispose, finish measurement and enqueue to send worker.
+        /// When use distributed monitoring, set traceId and parentId from other machine.
+        /// </summary>
+        /// <param name="name">The span name.</param>
+        /// <param name="resource">The resource you are tracing such as "/Home/Index", "/Article/Post".</param>
+        /// <param name="service">The service name such as "webservice", "batch", "mysql", "redis".</param>
+        /// <param name="type">The type of request such as "web", "db", "cache".</param>
+        /// <param name="traceId">TraceId from other machine.</param>
+        /// <param name="parentId">ParentId of tracing.</param>
+        TracingScope BeginTracing(string name, string resource, string service, string type, ulong traceId, ulong parentId);
+
+        void EnqueueToWorker(Span[] tracing);
+        void SetBufferingParameter(int bufferingCount, int bufferingTimeMilliseconds);
+        void SetExceptionLogger(Action<Exception> logger);
+
+        /// <summary>
+        /// Finish worker, flush all traces and wait complete.
+        /// </summary>
+        void Complete(TimeSpan waitTimeout);
+    }
+
+    public class TracingManager : ITracingManager
+    {
+        public static ITracingManager Default = new TracingManager();
         internal AsyncQueueWorker worker;
 
         public TracingManager()
