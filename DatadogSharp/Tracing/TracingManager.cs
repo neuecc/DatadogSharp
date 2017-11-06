@@ -240,8 +240,14 @@ namespace DatadogSharp.Tracing
                 this.meta = new Dictionary<string, string>();
             }
             this.meta["exception.type"] = exception.GetType().FullName;
-            this.meta["exception.stackTrace"] = exception.StackTrace;
-            this.meta["exception.message"] = exception.Message;
+            if (exception.StackTrace != null)
+            {
+                this.meta["exception.stackTrace"] = exception.StackTrace;
+            }
+            if (exception.Message != null)
+            {
+                this.meta["exception.message"] = exception.Message;
+            }
             if (additionalMessage != null)
             {
                 this.meta["error.message"] = additionalMessage;
@@ -393,8 +399,14 @@ namespace DatadogSharp.Tracing
                 this.meta = new Dictionary<string, string>();
             }
             this.meta["exception.type"] = exception.GetType().FullName;
-            this.meta["exception.stackTrace"] = exception.StackTrace;
-            this.meta["exception.message"] = exception.Message;
+            if (exception.StackTrace != null)
+            {
+                this.meta["exception.stackTrace"] = exception.StackTrace;
+            }
+            if (exception.Message != null)
+            {
+                this.meta["exception.message"] = exception.Message;
+            }
             if (additionalMessage != null)
             {
                 this.meta["error.message"] = additionalMessage;

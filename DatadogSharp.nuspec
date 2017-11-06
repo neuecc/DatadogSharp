@@ -2,14 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>DatadogSharp</id>
-        <version>1.5.1</version>
+        <version>1.5.2</version>
         <title>DatadogSharp</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
-        <projectUrl>https://github.com/neuecc/MessagePack-CSharp/</projectUrl>
+        <projectUrl>https://github.com/neuecc/DatadogSharp/</projectUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <description>Yet another C# Datadog client that supports DogStatsD and APM.</description>
-        <releaseNotes>net45, netstandard2.0 support</releaseNotes>
         <tags>Datadog, StatsD</tags>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
