@@ -5,7 +5,52 @@ using System.Text;
 
 namespace DatadogSharp.DogStatsd
 {
-    public class DatadogStats : IDisposable
+    public interface IDatadogStats
+    {
+        string WithPrefix(string name);
+
+        string[] WithDefaultTag(string[] tag);
+
+        void Send(string command);
+
+        void Send(byte[] command);
+
+        void Increment(string metricName, long value = 1, double sampleRate = 1.0, string[] tags = null);
+
+        void Decrement(string metricName, long value = 1, double sampleRate = 1.0, string[] tags = null);
+
+        void Counter(string metricName, long value, double sampleRate = 1.0, string[] tags = null);
+
+        void Gauge(string metricName, long value, double sampleRate = 1.0, string[] tags = null);
+
+        void Gauge(string metricName, double value, double sampleRate = 1.0, string[] tags = null);
+
+        void Histogram(string metricName, long value, double sampleRate = 1.0, string[] tags = null);
+
+        void Histogram(string metricName, double value, double sampleRate = 1.0, string[] tags = null);
+
+        void Timer(string metricName, long value, double sampleRate = 1.0, string[] tags = null);
+
+        void Timer(string metricName, double value, double sampleRate = 1.0, string[] tags = null);
+
+        void Set(string metricName, long value, double sampleRate = 1.0, string[] tags = null);
+
+        void Set(string metricName, double value, double sampleRate = 1.0, string[] tags = null);
+
+        MeasureElapsedScope BeginTimer(string metricName, double sampleRate = 1.0, string[] tags = null);
+
+        MeasureElapsedScope BeginGauge(string metricName, double sampleRate = 1.0, string[] tags = null);
+
+        MeasureElapsedScope BeginHistogram(string metricName, double sampleRate = 1.0, string[] tags = null);
+
+        CounterScope BeginCounter(string metricName, long value = 1, string[] tags = null);
+
+        void Event(string title, string text, int? dateHappened = null, string hostName = null, string aggregationKey = null, Priority priority = Priority.Normal, string sourceTypeName = null, AlertType alertType = AlertType.Info, string[] tags = null, bool truncateText = true);
+
+        void ServiceCheck(string name, string status, int? timestamp = null, string hostName = null, string[] tags = null, string serviceCheckMessage = null, bool truncateText = true);
+    }
+
+    public class DatadogStats : IDatadogStats, IDisposable
     {
         public static DatadogStats Default { get; private set; } = new DatadogStats();
 
