@@ -267,6 +267,10 @@ namespace DatadogSharp.Tracing
 
         public TracingScope WithError(Exception exception, string additionalMessage = null)
         {
+#if !NET45
+            exception = exception.Demystify();
+#endif
+
             error = 1;
             if (this.meta == null)
             {
@@ -426,6 +430,10 @@ namespace DatadogSharp.Tracing
 
         public SpanScope WithError(Exception exception, string additionalMessage = null)
         {
+#if !NET45
+            exception = exception.Demystify();
+#endif
+
             error = 1;
             if (this.meta == null)
             {

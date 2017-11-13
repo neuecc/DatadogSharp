@@ -1,1 +1,1 @@
-nuget push DatadogSharp.1.5.3.nupkg -Source https://www.nuget.org/api/v2/package
+nuget push DatadogSharp.1.5.4.nupkg -Source https://www.nuget.org/api/v2/package

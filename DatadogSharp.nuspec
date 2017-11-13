@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>DatadogSharp</id>
-        <version>1.5.3</version>
+        <version>1.5.4</version>
         <title>DatadogSharp</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -12,6 +12,9 @@
         <tags>Datadog, StatsD</tags>
         <dependencies>
             <group targetFramework=".NETFramework4.5">
+                <dependency id="MessagePack" version="1.7.1" />
+            </group>
+            <group targetFramework=".NETFramework4.6">
                 <dependency id="MessagePack" version="1.7.1" />
             </group>
             <group targetFramework=".NETStandard2.0">
@@ -27,5 +30,7 @@
         <file src="DatadogSharp\bin\Release\netstandard1.4\DatadogSharp.xml" target="lib\netstandard1.4" />
         <file src="DatadogSharp\bin\Release\net45\DatadogSharp.dll" target="lib\net45" />
         <file src="DatadogSharp\bin\Release\net45\DatadogSharp.xml" target="lib\net45" />
+        <file src="DatadogSharp\bin\Release\net46\DatadogSharp.dll" target="lib\net46" />
+        <file src="DatadogSharp\bin\Release\net46\DatadogSharp.xml" target="lib\net46" />
     </files>
 </package>

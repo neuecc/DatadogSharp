@@ -1,14 +1,21 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net45;netstandard2.0</TargetFrameworks>
+        <TargetFrameworks>net45;net46;netstandard2.0</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|net45'">
+        <DefineConstants>NET45</DefineConstants>
         <DocumentationFile>bin\Release\net45\DatadogSharp.xml</DocumentationFile>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|net46'">
+        <DefineConstants>NET46</DefineConstants>
+        <DocumentationFile>bin\Release\net46\DatadogSharp.xml</DocumentationFile>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(Configuration)|$(Platform)|$(TargetFramework)'=='Release|AnyCPU|netstandard2.0'">
+        <DefineConstants>NETSTANDARD2</DefineConstants>
         <DocumentationFile>bin\Release\netstandard2.0\DatadogSharp.xml</DocumentationFile>
     </PropertyGroup>
 
@@ -22,8 +29,14 @@
         <PackageReference Include="System.Security.Cryptography.Algorithms" Version="4.3.0" />
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' =='net45'">
+    <ItemGroup Condition="'$(TargetFramework)' =='net45' OR '$(TargetFramework)' =='net46'">
         <Reference Include="System.Net.Http" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' =='net46' OR '$(TargetFramework)' == 'netstandard2.0'">
+      <PackageReference Include="Ben.Demystifier">
+        <Version>0.0.3</Version>
+      </PackageReference>
     </ItemGroup>
 
 </Project>
