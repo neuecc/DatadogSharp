@@ -9,7 +9,7 @@ Additionaly supports [Datadog APM](https://www.datadoghq.com/apm/) API for [Data
 
 # Installation
 
-The library provides in NuGet for .NET Standard 1.4(.NET Framework(4.6.1) and .NET Core).
+The library provides in NuGet for .NET 4.5, 4.6 and .NET Standard 2.0(.NET Core).
 
 ```
 Install-Package DatadogSharp
