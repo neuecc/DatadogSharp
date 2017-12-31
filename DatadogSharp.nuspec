@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>DatadogSharp</id>
-        <version>1.5.4</version>
+        <version>1.5.5</version>
         <title>DatadogSharp</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -26,8 +26,8 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="DatadogSharp\bin\Release\netstandard1.4\DatadogSharp.dll" target="lib\netstandard1.4" />
-        <file src="DatadogSharp\bin\Release\netstandard1.4\DatadogSharp.xml" target="lib\netstandard1.4" />
+        <file src="DatadogSharp\bin\Release\netstandard2.0\DatadogSharp.dll" target="lib\netstandard2.0" />
+        <file src="DatadogSharp\bin\Release\netstandard2.0\DatadogSharp.xml" target="lib\netstandard2.0" />
         <file src="DatadogSharp\bin\Release\net45\DatadogSharp.dll" target="lib\net45" />
         <file src="DatadogSharp\bin\Release\net45\DatadogSharp.xml" target="lib\net45" />
         <file src="DatadogSharp\bin\Release\net46\DatadogSharp.dll" target="lib\net46" />
