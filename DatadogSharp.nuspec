@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
     <metadata>
         <id>DatadogSharp</id>
-        <version>1.5.5</version>
+        <version>1.5.5.1</version>
         <title>DatadogSharp</title>
         <authors>neuecc</authors>
         <owners>neuecc</owners>
@@ -13,15 +13,18 @@
         <dependencies>
             <group targetFramework=".NETFramework4.5">
                 <dependency id="MessagePack" version="1.7.1" />
+                <dependency id="Ben.Demystifier" version="0.0.8" />
             </group>
             <group targetFramework=".NETFramework4.6">
                 <dependency id="MessagePack" version="1.7.1" />
+                <dependency id="Ben.Demystifier" version="0.0.8" />
             </group>
             <group targetFramework=".NETStandard2.0">
                 <dependency id="MessagePack" version="1.7.1" />
                 <dependency id="System.Net.Http" version="4.3.1" />
                 <dependency id="System.Net.Sockets" version="4.3.0" />
                 <dependency id="System.Security.Cryptography.Algorithms" version="4.3.0" />
+                <dependency id="Ben.Demystifier" version="0.0.8" />
             </group>
         </dependencies>
     </metadata>

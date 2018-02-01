@@ -20,6 +20,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Ben.Demystifier" Version="0.0.8" />
         <PackageReference Include="MessagePack" Version="1.7.1" />
     </ItemGroup>
 
