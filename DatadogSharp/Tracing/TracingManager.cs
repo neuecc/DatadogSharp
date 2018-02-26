@@ -133,7 +133,7 @@ namespace DatadogSharp.Tracing
         Dictionary<string, string> meta = null;
 
         StructBuffer<Span> spans;
-        TracingManager manager;
+        ITracingManager manager;
 
         readonly object gate = new object();
 
@@ -141,12 +141,12 @@ namespace DatadogSharp.Tracing
         // Note:concurrent child count is small in most cases, List is almost fast.
         List<SpanScope> ambientManageQueue = null;
 
-        public TracingScope(string name, string resource, string service, string type, TracingManager manager)
+        public TracingScope(string name, string resource, string service, string type, ITracingManager manager)
             : this(name, resource, service, type, manager, Span.BuildRandomId(), null)
         {
         }
 
-        public TracingScope(string name, string resource, string service, string type, TracingManager manager, ulong traceId, ulong? parentId)
+        public TracingScope(string name, string resource, string service, string type, ITracingManager manager, ulong traceId, ulong? parentId)
         {
             this.Name = name;
             this.Resource = resource;
