@@ -1,0 +1,12 @@
+# http://EditorConfig.org
+
+# This file is the top-most EditorConfig file
+root = true
+
+# All Files
+[*]
+end_of_line = crlf
+indent_style = space
+indent_size = 4
+insert_final_newline = false
+trim_trailing_whitespace = true
