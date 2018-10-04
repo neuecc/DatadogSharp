@@ -9,7 +9,7 @@ namespace DatadogSharp.DogStatsd
     /// </summary>
     public static class DogStatsDFormatter
     {
-        static readonly IFormatProvider InvaliantCultrue = CultureInfo.InvariantCulture;
+        static readonly IFormatProvider InvariantCulture = CultureInfo.InvariantCulture;
 
         // metric.name:value|type|@sample_rate|#tag1:value,tag2
 
@@ -38,7 +38,7 @@ namespace DatadogSharp.DogStatsd
             if (sampleRate != 1.0)
             {
                 sb.Append("|@");
-                sb.Append(sampleRate.ToString(InvaliantCultrue));
+                sb.Append(sampleRate.ToString(InvariantCulture));
             }
 
             FormatTags(datadogStats, tags, sb);
@@ -99,52 +99,52 @@ namespace DatadogSharp.DogStatsd
 
         public static string Counter(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, value.ToString(InvaliantCultrue), "c", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "c", sampleRate, tags);
         }
 
         public static string Counter(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "c", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "c", sampleRate, tags);
         }
 
         public static string Gauge(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, value.ToString(InvaliantCultrue), "g", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "g", sampleRate, tags);
         }
 
         public static string Gauge(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "g", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "g", sampleRate, tags);
         }
 
         public static string Histogram(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, value.ToString(InvaliantCultrue), "h", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "h", sampleRate, tags);
         }
 
         public static string Histogram(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "h", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "h", sampleRate, tags);
         }
 
         public static string Timer(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, value.ToString(InvaliantCultrue), "ms", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "ms", sampleRate, tags);
         }
 
         public static string Timer(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "ms", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "ms", sampleRate, tags);
         }
 
         public static string Set(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, value.ToString(InvaliantCultrue), "s", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "s", sampleRate, tags);
         }
 
         public static string Set(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "s", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "s", sampleRate, tags);
         }
 
         // _e{title.length,text.length}:title|text|d:date_happened|h:hostname|p:priority|t:alert_type|#tag1,tag2
@@ -158,9 +158,9 @@ namespace DatadogSharp.DogStatsd
             var escapeText = text.Replace("\r", "").Replace("\n", "\\n");
 
             sb.Append("_e{");
-            sb.Append(escapeTitle.Length.ToString(InvaliantCultrue));
+            sb.Append(escapeTitle.Length.ToString(InvariantCulture));
             sb.Append(",");
-            sb.Append((truncateText && escapeText.Length > 4096) ? "4096" : escapeText.Length.ToString(InvaliantCultrue));
+            sb.Append((truncateText && escapeText.Length > 4096) ? "4096" : escapeText.Length.ToString(InvariantCulture));
             sb.Append("}:");
 
             sb.Append(escapeTitle);
@@ -179,7 +179,7 @@ namespace DatadogSharp.DogStatsd
             if (dateHappened != null)
             {
                 sb.Append("|d:");
-                sb.Append(dateHappened.Value.ToString(InvaliantCultrue));
+                sb.Append(dateHappened.Value.ToString(InvariantCulture));
             }
 
             if (hostName != null)
@@ -234,7 +234,7 @@ namespace DatadogSharp.DogStatsd
             if (timestamp != null)
             {
                 sb.Append("|d:");
-                sb.Append(timestamp.Value.ToString(InvaliantCultrue));
+                sb.Append(timestamp.Value.ToString(InvariantCulture));
             }
 
             if (hostName != null)
