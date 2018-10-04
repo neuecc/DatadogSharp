@@ -9,7 +9,7 @@ namespace DatadogSharp.DogStatsd
     /// </summary>
     public static class DogStatsDFormatter
     {
-        static readonly IFormatProvider InvaliantCultrue = CultureInfo.InvariantCulture;
+        static readonly IFormatProvider InvariantCulture = CultureInfo.InvariantCulture;
 
         // metric.name:value|type|@sample_rate|#tag1:value,tag2
 
@@ -19,113 +19,137 @@ namespace DatadogSharp.DogStatsd
         // sample rate is optional and should be a float between 0 and 1 inclusive.
         // tags are optional, and should be a comma seperated list of tags.Colons are used for key value tags.Note that the key device is reserved, tags like “device:xyc” will be dropped by Datadog.
 
-        static string BuildMetrics(string metricName, string value, string type, double sampleRate, string[] tags)
+        static string BuildMetrics(DatadogStats datadogStats, string metricName, string value, string type, double sampleRate, string[] tags)
         {
-            if (sampleRate == 1.0)
+            var sb = ThreadSafeUtil.RentThreadStaticStringBuilder();
+
+            if (datadogStats.MetricNamePrefix != null)
             {
-                if (tags == null || tags.Length == 0)
+                sb.Append(datadogStats.MetricNamePrefix);
+                sb.Append('.');
+            }
+
+            sb.Append(metricName);
+            sb.Append(':');
+            sb.Append(value);
+            sb.Append('|');
+            sb.Append(type);
+
+            if (sampleRate != 1.0)
+            {
+                sb.Append("|@");
+                sb.Append(sampleRate.ToString(InvariantCulture));
+            }
+
+            FormatTags(datadogStats, tags, sb);
+
+            return sb.ToString();
+        }
+
+        private static void FormatTags(DatadogStats datadogStats, string[] tags, StringBuilder sb)
+        {
+            var defaultTags = datadogStats.DefaultTagsFormatted;
+
+            if (defaultTags != null)
+            {
+                // defaultTags is already prefixed with |#
+                sb.Append(defaultTags);
+            }
+
+            if (tags != null && tags.Length > 0)
+            {
+                if (defaultTags == null)
                 {
-                    return metricName + ":" + value + "|" + type;
+                    // If we have no default tags, then we still need the |#
+                    sb.Append("|#");
                 }
                 else
                 {
-                    var sb = ThreadSafeUtil.RentThreadStaticStringBuilder();
-                    sb.Append(metricName);
-                    sb.Append(":");
-                    sb.Append(value);
-                    sb.Append("|");
-                    sb.Append(type);
-                    sb.Append("|#");
-                    for (int i = 0; i < tags.Length; i++)
-                    {
-                        if (i != 0) sb.Append(",");
-                        sb.Append(tags[i]);
-                    }
+                    // If there were default tags and there's more tags
+                    sb.Append(',');
+                }
 
-                    return sb.ToString();
+                for (int i = 0; i < tags.Length; i++)
+                {
+                    if (i != 0) sb.Append(',');
+                    sb.Append(tags[i]);
                 }
             }
-            else
+        }
+
+        public static string PreformatDefaultTags(string[] defaultTags)
+        {
+            if (defaultTags == null || defaultTags.Length == 0)
             {
-                if (tags == null || tags.Length == 0)
-                {
-                    return metricName + ":" + value + "|" + type + "|@" + sampleRate.ToString(InvaliantCultrue);
-                }
-                else
-                {
-                    var sb = ThreadSafeUtil.RentThreadStaticStringBuilder();
-                    sb.Append(metricName);
-                    sb.Append(":");
-                    sb.Append(value);
-                    sb.Append("|");
-                    sb.Append(type);
-                    sb.Append("|@");
-                    sb.Append(sampleRate.ToString(InvaliantCultrue));
-                    sb.Append("|#");
-                    for (int i = 0; i < tags.Length; i++)
-                    {
-                        if (i != 0) sb.Append(",");
-                        sb.Append(tags[i]);
-                    }
-
-                    return sb.ToString();
-                }
+                return null;
             }
+
+            var sb = new StringBuilder();
+
+            sb.Append("|#");
+
+            for (int i = 0; i < defaultTags.Length; i++)
+            {
+                if (i != 0) sb.Append(',');
+                sb.Append(defaultTags[i]);
+            }
+
+            return sb.ToString();
         }
 
-        public static string Counter(string metricName, long value, double sampleRate, string[] tags)
+        public static string Counter(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, value.ToString(InvaliantCultrue), "c", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "c", sampleRate, tags);
         }
 
-        public static string Counter(string metricName, double value, double sampleRate, string[] tags)
+        public static string Counter(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "c", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "c", sampleRate, tags);
         }
 
-        public static string Gauge(string metricName, long value, double sampleRate, string[] tags)
+        public static string Gauge(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, value.ToString(InvaliantCultrue), "g", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "g", sampleRate, tags);
         }
 
-        public static string Gauge(string metricName, double value, double sampleRate, string[] tags)
+        public static string Gauge(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "g", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "g", sampleRate, tags);
         }
 
-        public static string Histogram(string metricName, long value, double sampleRate, string[] tags)
+        public static string Histogram(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, value.ToString(InvaliantCultrue), "h", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "h", sampleRate, tags);
         }
 
-        public static string Histogram(string metricName, double value, double sampleRate, string[] tags)
+        public static string Histogram(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "h", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "h", sampleRate, tags);
         }
 
-        public static string Timer(string metricName, long value, double sampleRate, string[] tags)
+        public static string Timer(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, value.ToString(InvaliantCultrue), "ms", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "ms", sampleRate, tags);
         }
 
-        public static string Timer(string metricName, double value, double sampleRate, string[] tags)
+        public static string Timer(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "ms", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "ms", sampleRate, tags);
         }
 
-        public static string Set(string metricName, long value, double sampleRate, string[] tags)
+        public static string Set(DatadogStats datadogStats, string metricName, long value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, value.ToString(InvaliantCultrue), "s", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, value.ToString(InvariantCulture), "s", sampleRate, tags);
         }
 
-        public static string Set(string metricName, double value, double sampleRate, string[] tags)
+        public static string Set(DatadogStats datadogStats, string metricName, double value, double sampleRate, string[] tags)
         {
-            return BuildMetrics(metricName, Math.Round(value, 3).ToString(InvaliantCultrue), "s", sampleRate, tags);
+            return BuildMetrics(datadogStats, metricName, Math.Round(value, 3).ToString(InvariantCulture), "s", sampleRate, tags);
         }
 
         // _e{title.length,text.length}:title|text|d:date_happened|h:hostname|p:priority|t:alert_type|#tag1,tag2
 
-        public static string Event(string title, string text, int? dateHappened = null, string hostName = null, string aggregationKey = null, Priority priority = Priority.Normal, string sourceTypeName = null, AlertType alertType = AlertType.Info, string[] tags = null, bool truncateText = true)
+        public static string Event(DatadogStats datadogStats, string title, string text, int? dateHappened = null, string hostName = null, string aggregationKey = null, Priority priority = Priority.Normal, string sourceTypeName = null, AlertType alertType = AlertType.Info, string[] tags = null, bool truncateText = true)
         {
             var sb = ThreadSafeUtil.RentThreadStaticStringBuilder();
 
@@ -134,9 +158,9 @@ namespace DatadogSharp.DogStatsd
             var escapeText = text.Replace("\r", "").Replace("\n", "\\n");
 
             sb.Append("_e{");
-            sb.Append(escapeTitle.Length.ToString(InvaliantCultrue));
+            sb.Append(escapeTitle.Length.ToString(InvariantCulture));
             sb.Append(",");
-            sb.Append((truncateText && escapeText.Length > 4096) ? "4096" : escapeText.Length.ToString(InvaliantCultrue));
+            sb.Append((truncateText && escapeText.Length > 4096) ? "4096" : escapeText.Length.ToString(InvariantCulture));
             sb.Append("}:");
 
             sb.Append(escapeTitle);
@@ -144,7 +168,7 @@ namespace DatadogSharp.DogStatsd
 
             if (truncateText && escapeText.Length > 4096)
             {
-                sb.Append(escapeText, 0, 4096); 
+                sb.Append(escapeText, 0, 4096);
             }
             else
             {
@@ -155,7 +179,7 @@ namespace DatadogSharp.DogStatsd
             if (dateHappened != null)
             {
                 sb.Append("|d:");
-                sb.Append(dateHappened.Value.ToString(InvaliantCultrue));
+                sb.Append(dateHappened.Value.ToString(InvariantCulture));
             }
 
             if (hostName != null)
@@ -188,22 +212,14 @@ namespace DatadogSharp.DogStatsd
                 sb.Append(alertType.ToFormatName());
             }
 
-            if (tags != null && tags.Length != 0)
-            {
-                sb.Append("|#");
-                for (int i = 0; i < tags.Length; i++)
-                {
-                    if (i != 0) sb.Append(",");
-                    sb.Append(tags[i]);
-                }
-            }
+            FormatTags(datadogStats, tags, sb);
 
             return sb.ToString();
         }
 
         // _sc|name|status|metadata
 
-        public static string ServiceCheck(string name, string status, int? timestamp = null, string hostName = null, string[] tags = null, string serviceCheckMessage = null, bool truncateText = true)
+        public static string ServiceCheck(DatadogStats datadogStats, string name, string status, int? timestamp = null, string hostName = null, string[] tags = null, string serviceCheckMessage = null, bool truncateText = true)
         {
             var sb = ThreadSafeUtil.RentThreadStaticStringBuilder();
 
@@ -218,7 +234,7 @@ namespace DatadogSharp.DogStatsd
             if (timestamp != null)
             {
                 sb.Append("|d:");
-                sb.Append(timestamp.Value.ToString(InvaliantCultrue));
+                sb.Append(timestamp.Value.ToString(InvariantCulture));
             }
 
             if (hostName != null)
@@ -227,15 +243,7 @@ namespace DatadogSharp.DogStatsd
                 sb.Append(hostName);
             }
 
-            if (tags != null && tags.Length != 0)
-            {
-                sb.Append("|#");
-                for (int i = 0; i < tags.Length; i++)
-                {
-                    if (i != 0) sb.Append(",");
-                    sb.Append(tags[i]);
-                }
-            }
+            FormatTags(datadogStats, tags, sb);
 
             if (serviceCheckMessage != null)
             {
