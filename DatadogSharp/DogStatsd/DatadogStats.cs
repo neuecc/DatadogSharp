@@ -7,10 +7,6 @@ namespace DatadogSharp.DogStatsd
 {
     public interface IDatadogStats
     {
-        string WithPrefix(string name);
-
-        string[] WithDefaultTag(string[] tag);
-
         void Send(string command);
 
         void Send(byte[] command);
@@ -61,11 +57,12 @@ namespace DatadogSharp.DogStatsd
         }
 
         bool isNull;
-        string metricNamePrefix = null;
-        string[] defaultTags = null;
         IPEndPoint endPoint;
         Socket udpSocket;
         Encoding utf8 = Encoding.UTF8;
+
+        internal string DefaultTagsFormatted { get; }
+        internal string MetricNamePrefix { get; }
 
         DatadogStats()
         {
@@ -74,39 +71,12 @@ namespace DatadogSharp.DogStatsd
 
         public DatadogStats(string address, int port, string metricNamePrefix = null, string[] defaultTags = null)
         {
-            this.metricNamePrefix = metricNamePrefix;
-            if (defaultTags != null)
-            {
-                this.defaultTags = defaultTags;
-            }
+            this.MetricNamePrefix = string.IsNullOrWhiteSpace(metricNamePrefix) ? null : metricNamePrefix;
+            this.DefaultTagsFormatted = DogStatsDFormatter.PreformatDefaultTags(defaultTags);
 
             this.udpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             this.endPoint = new IPEndPoint(IPAddress.Parse(address), port);
             this.isNull = false;
-        }
-
-        public string WithPrefix(string name)
-        {
-            if (string.IsNullOrEmpty(metricNamePrefix)) return name;
-
-            return metricNamePrefix + "." + name;
-        }
-
-        public string[] WithDefaultTag(string[] tag)
-        {
-            if (defaultTags == null || defaultTags.Length == 0)
-            {
-                return tag;
-            }
-            else
-            {
-                if (tag == null || tag.Length == 0) return defaultTags;
-
-                var joinedTags = new string[defaultTags.Length + tag.Length];
-                Array.Copy(defaultTags, 0, joinedTags, 0, defaultTags.Length);
-                Array.Copy(tag, 0, joinedTags, defaultTags.Length, tag.Length);
-                return joinedTags;
-            }
         }
 
         public void Send(string command)
@@ -136,7 +106,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Counter(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Counter(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -146,7 +116,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Gauge(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Gauge(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -156,7 +126,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Gauge(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Gauge(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -166,7 +136,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Histogram(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Histogram(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -176,7 +146,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Histogram(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Histogram(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -186,7 +156,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Timer(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Timer(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -196,7 +166,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Timer(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Timer(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -206,7 +176,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Set(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Set(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -216,7 +186,7 @@ namespace DatadogSharp.DogStatsd
             if (isNull) return;
             if (sampleRate == 1.0 || sampleRate < ThreadSafeUtil.ThreadStaticRandom.NextDouble())
             {
-                var command = DogStatsDFormatter.Set(WithPrefix(metricName), value, sampleRate, WithDefaultTag(tags));
+                var command = DogStatsDFormatter.Set(this, metricName, value, sampleRate, tags);
                 Send(command);
             }
         }
@@ -245,7 +215,7 @@ namespace DatadogSharp.DogStatsd
         {
             if (isNull) return;
 
-            var command = DogStatsDFormatter.Event(title, text, dateHappened, hostName, aggregationKey, priority, sourceTypeName, alertType, WithDefaultTag(tags), truncateText);
+            var command = DogStatsDFormatter.Event(this, title, text, dateHappened, hostName, aggregationKey, priority, sourceTypeName, alertType, tags, truncateText);
             Send(command);
         }
 
@@ -253,7 +223,7 @@ namespace DatadogSharp.DogStatsd
         {
             if (isNull) return;
 
-            var command = DogStatsDFormatter.ServiceCheck(name, status, timestamp, hostName, WithDefaultTag(tags), serviceCheckMessage, truncateText);
+            var command = DogStatsDFormatter.ServiceCheck(this, name, status, timestamp, hostName, tags, serviceCheckMessage, truncateText);
             Send(command);
         }
 
